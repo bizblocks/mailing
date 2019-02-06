@@ -1,0 +1,11 @@
+@import "hover-defaults";
+@import "com.lokoproject.mailing/hover-ext-defaults";
+@import "app-components";
+@import "com.lokoproject.mailing/hover-ext";
+
+.hover {
+  // include auto-generated app components SCSS
+  @include app_components;
+  
+  @include com_lokoproject_mailing-hover-ext;
+}

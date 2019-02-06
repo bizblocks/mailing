@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<menu-config xmlns="http://schemas.haulmont.com/cuba/menu.xsd">
+    <menu id="application-mailing"
+          insertBefore="administration">
+        <item screen="mailing$GroovyScript.browse"/>
+        <item screen="mailing$Mailing.browse"/>
+        <item screen="screen"/>
+        <item screen="userNotification"/>
+    </menu>
+</menu-config>

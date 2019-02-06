@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<screen-config xmlns="http://schemas.haulmont.com/cuba/screens.xsd">
+    <screen id="mailing$GroovyScript.browse"
+            template="com/lokoproject/mailing/web/groovyscript/groovy-script-browse.xml"/>
+    <screen id="mailing$Mailing.browse"
+            template="com/lokoproject/mailing/web/mailing/mailing-browse.xml"/>
+    <screen id="screen"
+            template="com/lokoproject/mailing/web/screens/screen.xml"/>
+    <screen id="mainWindow"
+            template="com/lokoproject/mailing/web/screens/ext-mainwindow.xml"/>
+    <screen id="notificationBell"
+            template="com/lokoproject/mailing/web/screens/notificationBell.xml"/>
+    <screen id="notificationTemplateProcessor"
+            template="com/lokoproject/mailing/web/screens/notificationTemplateProcessor.xml"/>
+    <screen id="userNotification"
+            template="com/lokoproject/mailing/web/notification/screen.xml"/>
+</screen-config>

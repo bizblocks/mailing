@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<views xmlns="http://schemas.haulmont.com/cuba/view.xsd">
+    <view class="com.lokoproject.mailing.entity.Mailing"
+          extends="_local"
+          name="mailing-full">
+        <property name="mailingTargetScript"
+                  view="_minimal">
+            <property name="script"/>
+            <property name="scripVersion"/>
+            <property name="scriptVersionComment"/>
+            <property name="returnType"/>
+            <property name="entityType"/>
+        </property>
+        <property name="objectFilterScript"
+                  view="_minimal">
+            <property name="script"/>
+            <property name="scripVersion"/>
+            <property name="scriptVersionComment"/>
+            <property name="returnType"/>
+            <property name="entityType"/>
+        </property>
+        <property name="finalCheckScript"
+                  view="_minimal">
+            <property name="script"/>
+            <property name="scripVersion"/>
+            <property name="scriptVersionComment"/>
+            <property name="returnType"/>
+            <property name="entityType"/>
+        </property>
+        <property name="finalDecorationScript"
+                  view="_minimal">
+            <property name="script"/>
+            <property name="scripVersion"/>
+            <property name="scriptVersionComment"/>
+            <property name="returnType"/>
+            <property name="entityType"/>
+        </property>
+    </view>
+</views>
