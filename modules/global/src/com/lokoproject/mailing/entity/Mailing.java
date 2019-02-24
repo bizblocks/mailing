@@ -1,22 +1,13 @@
 package com.lokoproject.mailing.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+
 import com.haulmont.cuba.core.entity.StandardEntity;
-import com.haulmont.cuba.core.global.AppBeans;
-import com.haulmont.cuba.core.global.Scripting;
-import com.haulmont.cuba.security.entity.User;
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
-import groovy.util.Eval;
-import org.apache.commons.lang.StringUtils;
+import com.lokoproject.mailing.conditions.Condition;
+import com.haulmont.cuba.core.entity.annotation.Listeners;
+import com.lokoproject.mailing.conditions.OrCondition;
 
-import javax.persistence.Column;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import java.util.*;
-
+@Listeners("mailing_MailingEntityListener")
 @Table(name = "MAILING_MAILING")
 @Entity(name = "mailing$Mailing")
 public class Mailing extends StandardEntity {
@@ -25,6 +16,18 @@ public class Mailing extends StandardEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MAILING_TARGET_SCRIPT_ID")
     protected GroovyScript mailingTargetScript;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CONSOLIDATION_GROOVY_ID")
+    protected GroovyScript consolidationGroovy;
+
+    @Lob
+    @Column(name = "CONSOLIDATION_JSON")
+    protected String consolidationConditionJson;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "NOTIFICATION_BUILD_SCRIPT_ID")
+    protected GroovyScript notificationBuildScript;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "OBJECT_FILTER_SCRIPT_ID")
@@ -38,11 +41,50 @@ public class Mailing extends StandardEntity {
     @JoinColumn(name = "FINAL_DECORATION_SCRIPT_ID")
     protected GroovyScript finalDecorationScript;
 
-    @Column(name = "MAILING_AGENTS")
-    protected String mailingAgents;
+    @Column(name = "MAILING_PERFORMERS", length = 1000)
+    protected String mailingPerformers;
 
     @Column(name = "NAME")
     protected String name;
+
+    @Transient
+    private OrCondition consolidationCondition=new OrCondition();
+
+    public void setMailingPerformers(String mailingPerformers) {
+        this.mailingPerformers = mailingPerformers;
+    }
+
+    public String getMailingPerformers() {
+        return mailingPerformers;
+    }
+
+
+    public void setConsolidationGroovy(GroovyScript consolidationGroovy) {
+        this.consolidationGroovy = consolidationGroovy;
+    }
+
+    public GroovyScript getConsolidationGroovy() {
+        return consolidationGroovy;
+    }
+
+
+    public void setConsolidationConditionJson(String consolidationConditionJson) {
+        this.consolidationConditionJson = consolidationConditionJson;
+    }
+
+    public String getConsolidationConditionJson() {
+        return consolidationConditionJson;
+    }
+
+
+    public void setNotificationBuildScript(GroovyScript notificationBuildScript) {
+        this.notificationBuildScript = notificationBuildScript;
+    }
+
+    public GroovyScript getNotificationBuildScript() {
+        return notificationBuildScript;
+    }
+
 
     public void setMailingTargetScript(GroovyScript mailingTargetScript) {
         this.mailingTargetScript = mailingTargetScript;
@@ -76,14 +118,6 @@ public class Mailing extends StandardEntity {
         return finalDecorationScript;
     }
 
-    public void setMailingAgents(String mailingAgents) {
-        this.mailingAgents = mailingAgents;
-    }
-
-    public String getMailingAgents() {
-        return mailingAgents;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -93,5 +127,11 @@ public class Mailing extends StandardEntity {
     }
 
 
+    public Condition getConsolidationCondition() {
+        return consolidationCondition;
+    }
 
+    public void setConsolidationCondition(OrCondition consolidationCondition) {
+        this.consolidationCondition = consolidationCondition;
+    }
 }

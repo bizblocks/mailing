@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<window xmlns="http://schemas.haulmont.com/cuba/window.xsd"
+        caption="msg://caption"
+        class="com.lokoproject.mailing.web.screens.Consolidation"
+        messagesPack="com.lokoproject.mailing.web.screens">
+    <dsContext>
+        <hierarchicalDatasource id="availableItemsDs"
+                                allowCommit="false"
+                                class="com.lokoproject.mailing.entity.JustTransient"
+                                hierarchyProperty="parent"/>
+        <hierarchicalDatasource id="selectedItemsDs"
+                                allowCommit="false"
+                                class="com.lokoproject.mailing.entity.JustTransient"
+                                hierarchyProperty="parent"/>
+    </dsContext>
+    <dialogMode height="600"
+                width="1200"/>
+    <layout>
+        <vbox expand="mainHbox"
+              height="100%"
+              spacing="true">
+            <flowBox spacing="true">
+                <button id="addBtn"
+                        caption="msg://add"
+                        invoke="onAddBtnClick"/>
+                <button id="deleteBtn"
+                        caption="msg://delete"
+                        invoke="onDeleteBtnClick"/>
+                <button id="addOr"
+                        caption="msg://add_or"
+                        invoke="onAddOrClick"/>
+                <button id="addAnd"
+                        caption="msg://add_and"
+                        invoke="onAddAndClick"/>
+            </flowBox>
+            <hbox id="mainHbox"
+                  spacing="true"
+                  width="100%">
+                <tree id="availableItemsTree"
+                      height="100%"
+                      width="100%">
+                    <treechildren datasource="availableItemsDs"/>
+                </tree>
+                <tree id="selectedItemsTree"
+                      height="100%"
+                      width="100%">
+                    <treechildren datasource="selectedItemsDs"/>
+                </tree>
+                <vbox id="settingsVbox"
+                      spacing="true"/>
+            </hbox>
+            <flowBox spacing="true">
+                <button id="ok"
+                        caption="Ok"
+                        invoke="onOkClick"/>
+                <button id="cancel"
+                        caption="Cancel"
+                        invoke="onCancelClick"/>
+            </flowBox>
+        </vbox>
+    </layout>
+</window>

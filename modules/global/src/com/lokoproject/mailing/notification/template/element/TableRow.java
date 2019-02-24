@@ -1,12 +1,13 @@
 package com.lokoproject.mailing.notification.template.element;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.UUID;
 
 /**
  * @author Antonlomako. created on 14.01.2019.
  */
-public class TableRow {
+public class TableRow implements Serializable {
     private java.util.List<TableCell> cells=new ArrayList<>();
     private UUID entityId;
     private String entityClass;

@@ -7,6 +7,7 @@ import com.haulmont.cuba.core.global.DataManager;
 import com.haulmont.cuba.core.global.LoadContext;
 import com.haulmont.cuba.security.entity.User;
 import com.lokoproject.mailing.entity.MailingIdentifier;
+import com.lokoproject.mailing.entity.Notification;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -65,6 +66,15 @@ public class DaoServiceBean implements DaoService {
                 ;
         MailingIdentifier result=(MailingIdentifier) dataManager.load(loadContext);
         return result;
+    }
+
+    @Override
+    public Notification getNotificationById(String id) {
+        LoadContext<Notification> loadContext = LoadContext.create(Notification.class)
+                .setQuery(LoadContext.createQuery("select  n from mailing$Notification n where n.id = :idItem")
+                        .setParameter("idItem",UUID.fromString(id)))
+                .setView("notification-full");
+        return dataManager.load(loadContext);
     }
 
 }

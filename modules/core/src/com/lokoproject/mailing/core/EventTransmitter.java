@@ -39,7 +39,9 @@ public class EventTransmitter implements ApplicationListener<AbstractNotificatio
             if(event instanceof InstantWebEvent){
                 try {
                     sendEvent((WebEvent) event);
-                } catch (Exception ignored) { }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -55,22 +57,6 @@ public class EventTransmitter implements ApplicationListener<AbstractNotificatio
     private void sendEvent(WebEvent event) throws Exception {
 
         String url = "http://192.168.0.2:8080/app/"+"event";
-
-//        URL obj = new URL(url);
-//        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-//        con.setRequestMethod("GET");
-//
-//        BufferedReader in = new BufferedReader(
-//                new InputStreamReader(con.getInputStream()));
-//        String inputLine;
-//        StringBuffer response = new StringBuffer();
-//
-//        while ((inputLine = in.readLine()) != null) {
-//            response.append(inputLine);
-//        }
-//        in.close();
-
-
 
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(url);

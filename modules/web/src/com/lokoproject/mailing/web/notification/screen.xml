@@ -3,7 +3,46 @@
         caption="msg://caption"
         class="com.lokoproject.mailing.web.notification.UserNotification"
         messagesPack="com.lokoproject.mailing.web.notification">
+    <dsContext>
+        <collectionDatasource id="notificationsDs"
+                              class="com.lokoproject.mailing.entity.Notification">
+            <query>
+                <![CDATA[select e from mailing$Notification e]]>
+            </query>
+        </collectionDatasource>
+        <collectionDatasource id="tableNotificationsDs"
+                              allowCommit="false"
+                              class="com.lokoproject.mailing.entity.Notification"
+                              refreshMode="NEVER"/>
+    </dsContext>
     <dialogMode height="600"
                 width="800"/>
-    <layout/>
+    <layout>
+        <split height="100%"
+               orientation="horizontal"
+               pos="20"
+               width="100%">
+            <vbox height="100%"
+                  spacing="true">
+                <table id="notificationTable"
+                       height="100%"
+                       multiLineCells="true"
+                       width="100%">
+                    <columns>
+                        <column id="theme"
+                                width="200"/>
+                        <column id="sendDate"/>
+                    </columns>
+                    <rows datasource="tableNotificationsDs"/>
+                </table>
+            </vbox>
+            <vbox height="100%"
+                  margin="false,true,false,true"
+                  spacing="true">
+                <frame id="frame"
+                       height="100%"
+                       screen="notificationTemplateProcessor"/>
+            </vbox>
+        </split>
+    </layout>
 </window>

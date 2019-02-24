@@ -1,16 +1,19 @@
 package com.lokoproject.mailing.web.beens.ui;
 
 
+import com.haulmont.cuba.core.global.AppBeans;
 import com.haulmont.cuba.core.global.UserSessionSource;
 import com.haulmont.cuba.gui.components.Window;
 import com.haulmont.cuba.gui.executors.BackgroundWorker;
 import com.haulmont.cuba.gui.executors.UIAccessor;
 import com.haulmont.cuba.security.entity.User;
 import com.haulmont.cuba.security.global.NoUserSessionException;
+import com.haulmont.cuba.security.global.UserSession;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.server.WrappedSession;
 import com.vaadin.ui.UIDetachedException;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -65,16 +68,43 @@ public class UiAccessorCollector {
 //    }
 
     public void executeFor(User targetUser, String targetScreen, UiOperation uiOperation){
+        executeFor(targetUser,targetScreen,uiOperation,false,null);
+    }
+
+    public void executeOnceFor(User targetUser, String targetScreen, UiOperation uiOperation){
+        executeFor(targetUser,targetScreen,uiOperation,true,null);
+    }
+
+    public void executeOnConcreteScreenFor(User targetUser, String targetScreen,String windowHash, UiOperation uiOperation){
+        executeFor(targetUser,targetScreen,uiOperation,true,windowHash);
+    }
+
+
+    private void executeFor(User targetUser, String targetScreen, UiOperation uiOperation,boolean executeOnce,String concreteWindowHash){
         AccessorWrapper accessorWrapper=getAccessorWrapper(targetUser,targetScreen);
         if(accessorWrapper==null) return;
         List<UIAccessor> accessorsToRemove=new ArrayList<UIAccessor>();
 
-        accessorWrapper.getUiAccessors().forEach(accessor->{
+        for(UIAccessor accessor:accessorWrapper.getUiAccessors()){
+            class ExecuteChecker{
+                boolean executed=false;
+            }
+
+            ExecuteChecker executeChecker=new ExecuteChecker();
+
             if(accessorWrapper.canExecute(accessor)) {
                 try {
                     accessor.access(() -> {
                         try {
-                            uiOperation.doOperation(accessorWrapper.getWindow(accessor));
+                            if(!AppBeans.get(UserSession.class).getUser().equals(targetUser)){
+                                throw new Exception();  // проверка нужна, когда на одной вкладке один пользователь вышел другой зашел
+                            }
+                            Window window=accessorWrapper.getWindow(accessor);
+                            if((concreteWindowHash!=null)&&(!window.toString().equals(concreteWindowHash))){
+                                return; //например, если нужно выполнить операцию в конкретной вкладке браузера
+                            }
+                            uiOperation.doOperation(window);
+                            executeChecker.executed=true;
                         } catch (UIDetachedException exception) {
                             accessorsToRemove.add(accessor);
 
@@ -92,7 +122,12 @@ public class UiAccessorCollector {
             else{
                 removeAccessor(targetUser,targetScreen,accessorsToRemove);
             }
-        });
+
+            if((executeOnce)&&(BooleanUtils.isTrue(executeChecker.executed))){
+                return;
+            }
+
+        }
 
         if (accessorsToRemove.size()>0) removeAccessor(targetUser,targetScreen,accessorsToRemove);
 

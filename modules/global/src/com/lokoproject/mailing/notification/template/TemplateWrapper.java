@@ -1,20 +1,14 @@
 package com.lokoproject.mailing.notification.template;
 
-
-
-import com.lokoproject.mailing.notification.template.element.TemplateElement;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.lokoproject.mailing.notification.template.element.AbstractContainerElement;
 
 /**
  * @author Antonlomako. created on 09.12.2018.
  */
-public class Template {
+public class TemplateWrapper extends AbstractContainerElement {
     private String theme;
     private String description;
     private String iconName;
-    private List<TemplateElement> content=new ArrayList<>();
 
     public String getTheme() {
         return theme;
@@ -38,13 +32,5 @@ public class Template {
 
     public void setIconName(String iconName) {
         this.iconName = iconName;
-    }
-
-    public List<TemplateElement> getContent() {
-        return content;
-    }
-
-    public void setContent(List<TemplateElement> content) {
-        this.content = content;
     }
 }

@@ -35,5 +35,23 @@
             <property name="returnType"/>
             <property name="entityType"/>
         </property>
+        <property name="notificationBuildScript"
+                  view="_minimal">
+            <property name="script"/>
+        </property>
+        <property name="consolidationGroovy"
+                  view="_minimal"/>
+        <property name="updateTs"/>
+    </view>
+    <view class="com.lokoproject.mailing.entity.Notification"
+          extends="_local"
+          name="notification-full">
+        <property name="target"
+                  view="_minimal"/>
+        <property name="mailing"
+                  view="_minimal">
+            <property name="name"/>
+            <property name="mailingPerformers"/>
+        </property>
     </view>
 </views>

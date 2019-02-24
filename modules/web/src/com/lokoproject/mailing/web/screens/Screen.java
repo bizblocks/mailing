@@ -5,8 +5,12 @@ import com.haulmont.cuba.gui.WindowManager;
 import com.haulmont.cuba.gui.components.AbstractWindow;
 import com.haulmont.cuba.gui.components.TextField;
 import com.haulmont.cuba.security.global.UserSession;
+import com.lokoproject.mailing.conditions.Condition;
+import com.lokoproject.mailing.conditions.ConditionException;
+import com.lokoproject.mailing.conditions.OrCondition;
+import com.lokoproject.mailing.conditions.schedule.DayOfWeek;
+import com.lokoproject.mailing.conditions.schedule.HourSchedule;
 import com.lokoproject.mailing.notification.template.TemplateBuilder;
-import com.lokoproject.mailing.notification.template.element.TemplateElement;
 import com.lokoproject.mailing.service.BotService;
 import com.lokoproject.mailing.service.NotificationService;
 import com.lokoproject.mailing.web.beens.notification.CubaWebClientNotificationPerformer;
@@ -31,11 +35,33 @@ public class Screen extends AbstractWindow {
     @Inject
     private UserSession userSession;
 
+    private Condition condition;
+
     public void onStrClick() {
-        notificationProcessor.showDesktopNotificationToUser(userSession.getUser(),"header","content","",window->{
-            showNotification("click");
+
+        if(condition==null){
+            OrCondition orCondition=new OrCondition();
+            HourSchedule hourSchedule=new HourSchedule();
+            DayOfWeek dayOfWeek=new DayOfWeek();
+
+            orCondition.addChild(hourSchedule);
+            orCondition.addChild(dayOfWeek);
+
+            condition=orCondition;
+        }
+
+
+        Consolidation consolidation= (Consolidation) openWindow("consolidation", WindowManager.OpenType.DIALOG,ParamsMap.of("condition",condition));
+        consolidation.addCloseListener(event->{
+            setCondition(consolidation.getCondition());
+            Calendar calendar=Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR,-1);
+            try {
+                showNotification(String.valueOf(condition.check(ParamsMap.of("now",new Date(),"lastSendDate",calendar.getTime(),"objectsValue",3))));
+            } catch (ConditionException e) {
+                e.printStackTrace();
+            }
         });
-        //notificationService.addNotification(textField.getValue());
     }
 
     public void onIntClick() {
@@ -49,13 +75,15 @@ public class Screen extends AbstractWindow {
             }
             data.add(row);
         }
-        TemplateElement template=TemplateBuilder.createTemplateBuilder()
-                .withChild(TemplateBuilder.createTableBuilder(data)
+        TemplateBuilder.MainTemplateBuilder builder=TemplateBuilder.createBuilder("тема","описание","smile");
+
+        builder.withChild(builder.createTableBuilder(data)
                         .withColumns(Arrays.asList("col0","col1","col2"))
                         .build())
-                .withChild(TemplateBuilder.createList(Arrays.asList("col0","col1","col2")))
-                .build();
-        openWindow("notificationTemplateProcessor", WindowManager.OpenType.DIALOG, ParamsMap.of("notificationTemplate",template));
+                .withChild(builder.createList(Arrays.asList("col0","col1","col2")))
+                .withChild(builder.createText("some text"));
+
+        openWindow("notificationTemplateProcessor", WindowManager.OpenType.DIALOG, ParamsMap.of("notificationTemplate",builder.build()));
     }
 
     public void onSClick() {
@@ -68,5 +96,13 @@ public class Screen extends AbstractWindow {
 
     public void onBotClick() {
         botService.startBot();
+    }
+
+    public Condition getCondition() {
+        return condition;
+    }
+
+    public void setCondition(Condition condition) {
+        this.condition = condition;
     }
 }

@@ -1,9 +1,13 @@
 /* Define your theme modifications inside next mixin */
 @mixin com_lokoproject_mailing-halo-ext {
 
-
+  .v-tree-node-caption.red{
+    background-color: coral;
+    border-radius: 4px;
+  }
 
   .container {
+    z-index: 10;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -31,6 +35,7 @@
 
   .bell_notification::before {
     color: black;
+
     display: block;
     content: "\f0f3";
     font-family: "FontAwesome";
@@ -38,6 +43,7 @@
   }
 
   .bell_notification::after {
+    color:#fff;
     font-family: Arial;
     font-size: .4em;
     font-weight: 700;
@@ -71,9 +77,99 @@
     opacity: 1;
   }
 
+  .bell_notification {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    width:20px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* The actual popup */
+  .bell_notification .bell-popuptext {
+    visibility: hidden;
+    width: 20vw;
+    background-color: white;
+    font-size: 15px;
+    text-align: center;
+    border-radius: 3px;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 150%;
+    margin-left: -80px;
+    border: 1px solid #555;
+  }
+
+  /* Popup arrow */
+  .bell_notification .bell-popuptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 30px;
+    margin-left: -5px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent #555 transparent;
+  }
+
+
+  .bell_notification .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+  }
+
+  .notification-line{
+    text-align:left;
+    font-size:75%;
+    color:#a1a2a5;
+    letter-spacing: 1px;
+
+
+  }
+  .notification-theme{
+    text-align:left;
+    margin:  7px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+
+  }
+
+  .notification-item{
+    text-align:left;
+    padding: 0 8px;
+    cursor:pointer;
+    transition:0.3s;
+    border-radius:2px;
+  }
+
+  .notification-item:hover{
+    background-color:#eaecef;
+
+  }
+
 
 }
 
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity:1 ;}
+}
 @-webkit-keyframes ring {
   0% {
     -webkit-transform: rotate(35deg);

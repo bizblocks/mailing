@@ -69,6 +69,10 @@ configure([globalModule, coreModule, webModule]) {
 }
 
 configure(globalModule) {
+
+    dependencies {
+        compile('com.fasterxml.jackson.core:jackson-annotations:2.9.6')
+    }
     entitiesEnhancing {
         main {
             enabled = true

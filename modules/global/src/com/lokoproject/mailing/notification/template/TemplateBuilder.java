@@ -11,38 +11,74 @@ import java.util.List;
 /**
  * @author Antonlomako. created on 02.01.2019.
  */
+@SuppressWarnings("unused")
 public class TemplateBuilder {
 
-    /**
-     * колонки таблицы для каждого поля сущности
-     * @param data набор сущностей
-     */
-    public static TableBuilder createTableByEntities(List<StandardEntity> data){
-        return new TableBuilder().withEntityData(data);
+    //единственный паблик метод, чтобы всегда сначала создавался TemplateWrapper
+    public static MainTemplateBuilder createBuilder(String theme,String description,String iconName){
+        return new MainTemplateBuilder(theme,description,iconName);
     }
 
-    /**
-     * создание таблицы по карте значений.
-     * @param data набор карт значений. ключи - идентификаторы колонок
-     */
-    public static TableBuilder createTableBuilder(List<Map<String,String>> data){
-        return new TableBuilder().withData(data);
+    public static class MainTemplateBuilder extends ContainerTemplateBuilder{
+
+        TemplateWrapper templateWrapper=new TemplateWrapper();
+
+        MainTemplateBuilder(String theme,String description,String iconName){
+            templateWrapper.setDescription(description);
+            templateWrapper.setIconName(iconName);
+            templateWrapper.setTheme(theme);
+        }
+
+        @Override
+        protected TemplateElement getResult() {
+            return templateWrapper;
+        }
+
+        @Override
+        protected TemplateElement createElement() {
+            return templateWrapper;
+        }
+
+        /**
+         * колонки таблицы для каждого поля сущности
+         * @param data набор сущностей
+         */
+        public TableBuilder createTableByEntities(List<StandardEntity> data){
+            return new TableBuilder().withEntityData(data);
+        }
+
+        /**
+         * создание таблицы по карте значений.
+         * @param data набор карт значений. ключи - идентификаторы колонок
+         */
+        public  TableBuilder createTableBuilder(List<Map<String,String>> data){
+            return new TableBuilder().withData(data);
+        }
+
+        public ContentBlockTemplateBuilder createContentBlockBuilder(){
+            return new ContentBlockTemplateBuilder();
+        }
+
+        public  com.lokoproject.mailing.notification.template.element.List createList(List<String> elements){
+            com.lokoproject.mailing.notification.template.element.List result=new com.lokoproject.mailing.notification.template.element.List();
+            result.setElements(elements);
+            return result;
+        }
+
+        public Header createHeader(String content){
+            Header header=new Header();
+            header.setContent(content);
+            return header;
+        }
+
+        public Text createText(String content){
+            Text text=new Text();
+            text.setContent(content);
+            return text;
+        }
     }
 
-    public static ContentBlockBuilder createTemplateBuilder(){
-        return new ContentBlockBuilder();
-    }
 
-
-    public ContentBlockBuilder createContentBlockBuilder(){
-        return new ContentBlockBuilder();
-    }
-
-    public static com.lokoproject.mailing.notification.template.element.List createList(List<String> elements){
-        com.lokoproject.mailing.notification.template.element.List result=new com.lokoproject.mailing.notification.template.element.List();
-        result.setElements(elements);
-        return result;
-    }
 
     private static abstract class AbstractBuilder{
 
@@ -227,18 +263,22 @@ public class TemplateBuilder {
         }
     }
 
-    public static class ContentBlockBuilder extends AbstractBuilder{
+    public static abstract class ContainerTemplateBuilder extends AbstractBuilder{
+
+        ContainerTemplateBuilder(){}
+
+        public ContainerTemplateBuilder withChild(TemplateElement templateElement){
+            ((TemplateContainerElement)getResult()).addChild(templateElement);
+            return this;
+        }
+
+    }
+
+    public static class ContentBlockTemplateBuilder extends ContainerTemplateBuilder{
+
+        ContentBlockTemplateBuilder(){}
+
         private ContentBlock contentBlock =new ContentBlock();
-
-        public ContentBlockBuilder withChild(TemplateElement templateElement){
-            contentBlock.addChild(templateElement);
-            return this;
-        }
-
-        public ContentBlockBuilder withMergePriority(int mergePriority){
-            contentBlock.setMergePriority(mergePriority);
-            return this;
-        }
 
         @Override
         protected TemplateElement getResult() {
@@ -246,12 +286,22 @@ public class TemplateBuilder {
         }
 
         @Override
-        public TemplateElement createElement() {
+        protected TemplateElement createElement() {
             return contentBlock;
+        }
+
+        public ContainerTemplateBuilder withMergePriority(int mergePriority){
+            contentBlock.setMergePriority(mergePriority);
+            return this;
         }
     }
 
+
+
     public static class ListBuilder extends AbstractBuilder{
+
+        ListBuilder(){}
+
         private com.lokoproject.mailing.notification.template.element.List list=new com.lokoproject.mailing.notification.template.element.List();
 
         @Override
@@ -271,6 +321,9 @@ public class TemplateBuilder {
     }
 
     public static class TextBuilder extends AbstractBuilder{
+
+        TextBuilder(){}
+
         private Text text=new Text();
 
         @Override

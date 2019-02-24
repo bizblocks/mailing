@@ -4,11 +4,14 @@ import javax.persistence.*;
 
 import com.haulmont.cuba.core.entity.StandardEntity;
 import com.haulmont.cuba.security.entity.User;
+import com.lokoproject.mailing.notification.template.TemplateWrapper;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Date;
+import com.haulmont.cuba.core.entity.annotation.Listeners;
 
+@Listeners("mailing_NotificationEntityListener")
 @Table(name = "MAILING_NOTIFICATION")
 @Entity(name = "mailing$Notification")
 public class Notification extends StandardEntity {
@@ -18,6 +21,10 @@ public class Notification extends StandardEntity {
     @JoinColumn(name = "TARGET_ID")
     protected User target;
 
+    @Lob
+    @Column(name = "TEMPLATE_JSON")
+    protected String templateJson;
+
     @Temporal(TemporalType.DATE)
     @Column(name = "SEND_DATE")
     protected Date sendDate;
@@ -25,16 +32,24 @@ public class Notification extends StandardEntity {
     @Column(name = "STAGE")
     protected Integer stage;
 
-    @Lob
-    @Column(name = "TEMPLATE")
-    protected String template;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MAILING_ID")
     protected Mailing mailing;
 
     @Transient
+    protected TemplateWrapper template;
+
+    @Transient
     private Set<Object> objects=new HashSet<>();
+
+    public void setTemplateJson(String templateJson) {
+        this.templateJson = templateJson;
+    }
+
+    public String getTemplateJson() {
+        return templateJson;
+    }
+
 
     public void setSendDate(Date sendDate) {
         this.sendDate = sendDate;
@@ -53,13 +68,6 @@ public class Notification extends StandardEntity {
         return stage == null ? null : NotificationStage.fromId(stage);
     }
 
-    public void setTemplate(String template) {
-        this.template = template;
-    }
-
-    public String getTemplate() {
-        return template;
-    }
 
     @Transient
     public Set<Object> getObjects() {
@@ -87,4 +95,11 @@ public class Notification extends StandardEntity {
     }
 
 
+    public TemplateWrapper getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(TemplateWrapper template) {
+        this.template = template;
+    }
 }

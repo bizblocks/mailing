@@ -1,12 +1,18 @@
 package com.lokoproject.mailing.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haulmont.bali.util.ParamsMap;
+import com.haulmont.cuba.core.entity.contracts.Id;
 import com.haulmont.cuba.core.global.*;
+import com.haulmont.cuba.security.app.Authenticated;
 import com.haulmont.cuba.security.entity.User;
+import com.lokoproject.mailing.conditions.ConditionException;
 import com.lokoproject.mailing.entity.NotificationStage;
 import com.lokoproject.mailing.entity.NotificationStageLog;
 import com.lokoproject.mailing.notification.event.AbstractNotificationEvent;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.entity.Notification;
+import com.lokoproject.mailing.notification.template.TemplateWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service(NotificationService.NAME)
 public class NotificationServiceBean implements NotificationService {
@@ -38,7 +45,17 @@ public class NotificationServiceBean implements NotificationService {
 
 
     private Map<Mailing,Map<User,Notification>> mailingMap=new ConcurrentHashMap<>();
+    private Map<Mailing,Map<User,Date>> lastSendDateMap=new ConcurrentHashMap<>();
+    private Map<String,Notification> actualNotificationMap=new ConcurrentHashMap<>();
     private Collection<Mailing> allMailings;
+
+    @Override
+    public void updateMailing(Mailing mailing){
+        if(getAllMailings()==null) return;
+
+        getAllMailings().remove(mailing);
+        getAllMailings().add(mailing);
+    }
 
     @Override
     public void addNotification(Object object){
@@ -72,8 +89,45 @@ public class NotificationServiceBean implements NotificationService {
         return true;
     }
 
-    private boolean canSendNow(Notification notification, Date date) {
-        return true;
+    private boolean canSendNow(Notification notification, Date now) {
+        Mailing mailing=notification.getMailing();
+        if((mailing.getConsolidationCondition()==null)&&(mailing.getConsolidationGroovy()==null)) return true;
+
+        Date lastSendDate=null;
+        Map<User,Date> userDateMap=lastSendDateMap.get(notification.getMailing());
+        if(userDateMap!=null){
+            lastSendDate=userDateMap.get(notification.getTarget());
+        }
+        if(lastSendDate==null){
+            lastSendDate=now;   //чтобы при запуске системы сразу накапливаемые уведомления не отправлялись
+        }
+
+        if(mailing.getConsolidationCondition()!=null){
+
+            try {
+                return mailing.getConsolidationCondition().check(
+                        ParamsMap.of("lastSendDate",lastSendDate
+                                ,"now",now
+                                ,"objectsValue",notification.getObjects().size()));
+            } catch (ConditionException e) {
+                return false;
+            }
+        }
+        else{
+            if((mailing.getConsolidationGroovy()==null)||(StringUtils.isEmpty(mailing.getConsolidationGroovy().getScript()))) return true;
+
+            try {
+                Map<String, Object> binding = new HashMap<>();
+                binding.put("objectsValue", notification.getObjects());
+                binding.put("lastSendDate", lastSendDate);
+                binding.put("now", now);
+
+                return (Boolean) scripting.evaluateGroovy(mailing.getConsolidationGroovy().getScript(), binding);
+
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     @Override
@@ -83,16 +137,36 @@ public class NotificationServiceBean implements NotificationService {
                 .setView("mailing-full");
         ;
         allMailings= dataManager.loadList(loadContext);
-        return allMailings;
+        return new CopyOnWriteArrayList<>(allMailings);
     }
 
     @Override
+    @Authenticated
     public Notification updateNotificationStage(Notification notification, NotificationStage stage){
+
+        if(notification.getStage().getId()>=stage.getId()) return notification;
+
         notification=dataManager.reload(notification,"_local");
         notification.setStage(stage);
-        notification=dataManager.commit(notification);
+        notification=dataManager.commit(notification,"notification-full");
         makeRecordOfNotificationStateChange(notification,stage);
+        if(NotificationStage.READ.getId()>stage.getId()) {
+            actualNotificationMap.put(notification.getId().toString(),notification);
+        }
+        else{
+            actualNotificationMap.remove(notification.getId().toString());
+        }
+
         return notification;
+    }
+
+    @Override
+    @Authenticated
+    public void confirmNotificationReceipt(String notificationId){
+        Notification notification=dataManager.load(Id.of(UUID.fromString(notificationId),Notification.class)).one();
+        notification.setStage(NotificationStage.READ);
+        notification=dataManager.commit(notification,"notification-full");
+        makeRecordOfNotificationStateChange(notification,NotificationStage.READ);
     }
 
     private void makeRecordOfNotificationStateChange(Notification notification, NotificationStage stage){
@@ -133,8 +207,9 @@ public class NotificationServiceBean implements NotificationService {
         notification.getObjects().add(object);
         notification.setTarget(user);
         notification.setStage(NotificationStage.CONSOLIDATION);
-        notification=dataManager.commit(notification);
+        notification=dataManager.commit(notification,"notification-full");
         makeRecordOfNotificationStateChange(notification,NotificationStage.CONSOLIDATION);
+        actualNotificationMap.put(notification.getId().toString(),notification);
         return notification;
     }
 
@@ -148,8 +223,7 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     public Collection<Mailing> getAllMailings() {
-        //return allMailings==null?loadAllMailings():allMailings;
-        return loadAllMailings();
+        return allMailings==null?loadAllMailings():allMailings;
     }
 
 
@@ -184,19 +258,48 @@ public class NotificationServiceBean implements NotificationService {
         }
     }
 
+    TemplateWrapper buildNotificationTemplate(Mailing mailing,Collection<Object> objects){
+        if((mailing.getNotificationBuildScript()==null)||(StringUtils.isEmpty(mailing.getNotificationBuildScript().getScript()))) return null;
+
+        try {
+            Map<String, Object> binding = new HashMap<>();
+            binding.put("objects", objects);
+
+            Object result=scripting.evaluateGroovy(mailing.getNotificationBuildScript().getScript(), binding);
+
+            return (TemplateWrapper) result;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void dispatchNotification(Notification notification){
         try {
-            AbstractNotificationEvent notificationEvent= getNotificationEvent(notification.getMailing().getMailingAgents());
+
+            List<AbstractNotificationEvent> notificationEvents=new ArrayList<>();
+            for(String performer: notification.getMailing().getMailingPerformers().split(";")){
+                try{
+                    notificationEvents.add(getNotificationEvent(performer));
+                }
+                catch (Exception ignored){}
+            }
+            if(notificationEvents.size()==0) return;
 
             notification.setStage(NotificationStage.AFTER_CONSOLIDATION);
             notification.setSendDate(timeSource.currentTimestamp());
-            notification=dataManager.commit(notification);
-            makeRecordOfNotificationStateChange(notification,NotificationStage.AFTER_CONSOLIDATION);
-            updateNotificationInMap(notification);
+            notification.setTemplate(buildNotificationTemplate(notification.getMailing(),notification.getObjects()));
 
-            notificationEvent.setNotification(notification);
-            events.publish(notificationEvent);
-            lastSendNotification=notification;
+            makeRecordOfNotificationStateChange(notification,NotificationStage.AFTER_CONSOLIDATION);
+            updateNotificationInMap(dataManager.commit(notification,"notification-full"));
+
+            notificationEvents.forEach(notificationEvent->{
+                notificationEvent.setNotification(notification);
+                events.publish(notificationEvent);
+            });
+
+            lastSendDateMap.putIfAbsent(notification.getMailing(),new HashMap<>());
+            lastSendDateMap.get(notification.getMailing()).put(notification.getTarget(),notification.getSendDate());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -218,12 +321,36 @@ public class NotificationServiceBean implements NotificationService {
         }
     }
 
-
-
-    Notification lastSendNotification;
     @Override
-    public Collection<Notification> getNotifications(String ids){
-        return Arrays.asList(lastSendNotification);
+    public Notification getNotificationById(String id){
+
+        Notification result=actualNotificationMap.get(id);
+        if(result!=null){
+            return result;
+        }
+        else {
+            return daoService.getNotificationById(id);
+        }
     }
+
+    @Override
+    public List<Notification> getActualUserNotifications(User user, String notificationAgent) {
+        List<Notification> result=new ArrayList<>();
+        actualNotificationMap.values().forEach(notification -> {
+            if(notification.getStage().equals(NotificationStage.AFTER_CONSOLIDATION)||(notification.getStage().equals(NotificationStage.PROCESSED))){
+                if(notification.getTarget().equals(user)){
+                    if(notification.getMailing().getMailingPerformers().contains(notificationAgent)){
+                        result.add(notification);
+                    }
+                }
+            }
+        });
+
+        Collections.sort(result,(n1,n2)-> n1.getSendDate().compareTo(n2.getSendDate()));
+
+        return result;
+    }
+
+
 }
 

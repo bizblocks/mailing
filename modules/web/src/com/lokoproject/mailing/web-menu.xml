@@ -6,5 +6,6 @@
         <item screen="mailing$Mailing.browse"/>
         <item screen="screen"/>
         <item screen="userNotification"/>
+        <item screen="consolidation"/>
     </menu>
 </menu-config>

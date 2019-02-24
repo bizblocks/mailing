@@ -2,13 +2,14 @@ package com.lokoproject.mailing.notification.template.element;
 
 import com.lokoproject.mailing.notification.template.style.ElementStyle;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Antonlomako. created on 03.01.2019.
  */
-public abstract class AbstractTemplateElement implements TemplateElement {
+public abstract class AbstractTemplateElement implements TemplateElement,Serializable {
 
     protected String id;
 

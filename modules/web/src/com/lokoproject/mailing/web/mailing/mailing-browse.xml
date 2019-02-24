@@ -82,14 +82,15 @@
                   spacing="true">
                 <scrollBox id="fieldGroupBox">
                     <fieldGroup id="fieldGroup"
-                                datasource="mailingDs">
-                        <column width="250px">
+                                datasource="mailingDs"
+                                width="100%">
+                        <column width="400px">
                             <field property="mailingTargetScript"/>
                             <field property="objectFilterScript"/>
                             <field property="finalCheckScript"/>
                             <field property="finalDecorationScript"/>
-                            <field property="mailingAgents"/>
                             <field property="name"/>
+                            <field property="notificationBuildScript"/>
                         </column>
                     </fieldGroup>
                 </scrollBox>

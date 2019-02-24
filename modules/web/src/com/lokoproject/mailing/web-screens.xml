@@ -14,4 +14,6 @@
             template="com/lokoproject/mailing/web/screens/notificationTemplateProcessor.xml"/>
     <screen id="userNotification"
             template="com/lokoproject/mailing/web/notification/screen.xml"/>
+    <screen id="consolidation"
+            template="com/lokoproject/mailing/web/screens/consolidation.xml"/>
 </screen-config>
