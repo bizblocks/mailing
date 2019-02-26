@@ -1,27 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <window xmlns="http://schemas.haulmont.com/cuba/window.xsd"
-        caption="msg://caption"
+        caption="msg://notification_test"
         class="com.lokoproject.mailing.web.screens.Screen"
         messagesPack="com.lokoproject.mailing.web.screens">
     <dialogMode height="600"
                 width="800"/>
     <layout>
         <hbox spacing="true">
-            <textField id="textField"/>
-            <button id="str"
-                    caption="str"
-                    invoke="onStrClick"/>
-            <button id="int"
-                    caption="int"
-                    invoke="onIntClick"/>
+            <textField id="textField1"/>
+            <textField id="textField2"/>
+            <textField id="textField3"/>
+            <button id="s"
+                    caption="msg://s"
+                    invoke="onSClick"/>
         </hbox>
-        <button id="i"
-                caption="int"
-                invoke="onIClick"/>
-        <button id="bot"
-                invoke="onBotClick"/>
-        <button id="s"
-                caption="s"
-                invoke="onSClick"/>
     </layout>
 </window>

@@ -1,6 +1,5 @@
 package com.lokoproject.mailing.conditions;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.lang.reflect.Field;
 

@@ -43,7 +43,7 @@ public class CubaEmailNotificationPerformer implements ApplicationListener<CubaE
         EmailInfo emailInfo = new EmailInfo(
                 email,
                 (templateWrapper instanceof TemplateWrapper)? ((TemplateWrapper)templateWrapper).getTheme():"",
-                ""
+                mailContent
         );
         emailInfo.setBodyContentType("text/html; charset=UTF-8");
         emailService.sendEmailAsync(emailInfo);

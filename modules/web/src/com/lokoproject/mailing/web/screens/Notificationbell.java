@@ -101,13 +101,15 @@ public class Notificationbell extends AbstractWindow {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm");
         if(builder.length()>0) builder.append("<hr>");
 
-//        builder.append( "<div onclick=\"onBellNotificationClick('").append(notification.getId().toString()).append("')\" ><div class='notification-line '><div class='bold-text'>")
-        builder.append( "<div class='notification-item' id='").append(notification.getId().toString()).append("' ><div class='notification-theme '>")
-                .append(notification.getTemplate().getTheme())
-                .append("</div><div class='notification-line'><span>")
-                .append(dateFormat.format(notification.getSendDate()))
-                .append("</span><span style='margin: 08px;'>&#183;</span><span>")
-                .append(notification.getMailing().getName()).append("</span></div></div>");
+        try{
+            builder.append( "<div class='notification-item' id='").append(notification.getId().toString()).append("' ><div class='notification-theme '>")
+                    .append(notification.getTemplate().getTheme())
+                    .append("</div><div class='notification-line'><span>")
+                    .append(dateFormat.format(notification.getSendDate()))
+                    .append("</span><span style='margin: 08px;'>&#183;</span><span>")
+                    .append(notification.getMailing().getName()).append("</span></div></div>");
+        }
+        catch (Exception ignored){}
 
         return builder;
 

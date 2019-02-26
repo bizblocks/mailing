@@ -21,7 +21,13 @@ import java.util.*;
 public class Screen extends AbstractWindow {
 
     @Inject
-    private TextField textField;
+    private TextField textField1;
+
+    @Inject
+    private TextField textField2;
+
+    @Inject
+    private TextField textField3;
 
     @Inject
     private NotificationService notificationService;
@@ -65,7 +71,7 @@ public class Screen extends AbstractWindow {
     }
 
     public void onIntClick() {
-//        notificationService.addNotification(Integer.valueOf(textField.getValue()));
+//        notificationService.addNotification(Integer.valueOf(textField1.getValue()));
         List<Map<String,String>> data=new ArrayList<>();
 
         for(int i=0;i<5;i++){
@@ -87,11 +93,11 @@ public class Screen extends AbstractWindow {
     }
 
     public void onSClick() {
-        notificationService.addNotification(textField.getValue());
+        notificationService.addNotification(Arrays.asList(textField1.getValue(), textField2.getRawValue(), textField3.getRawValue()));
     }
 
     public void onIClick() {
-        notificationService.addNotification(Integer.valueOf(textField.getValue()));
+        notificationService.addNotification(Integer.valueOf(textField1.getValue()));
     }
 
     public void onBotClick() {

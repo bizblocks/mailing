@@ -14,6 +14,7 @@ import com.haulmont.cuba.security.global.UserSession;
 import com.lokoproject.mailing.entity.Notification;
 import com.lokoproject.mailing.entity.NotificationStage;
 import com.lokoproject.mailing.notification.event.CubaWebClientNotificationEvent;
+import com.lokoproject.mailing.service.EventTransmitterService;
 import com.lokoproject.mailing.service.NotificationService;
 import com.lokoproject.mailing.web.beens.ui.UiAccessorCollector;
 import com.lokoproject.mailing.web.notification.UserNotification;
@@ -40,6 +41,9 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
 
     @Inject
     private NotificationService notificationService;
+
+    @Inject
+    private EventTransmitterService eventTransmitterService;
 
 
     private UserSession userSession;
@@ -182,6 +186,10 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
     public void initByMainWindow(Window window){
         String url = ((VaadinServletRequest) VaadinService.getCurrentRequest()).getServerName()+":"+
                 ((VaadinServletRequest) VaadinService.getCurrentRequest()).getServerPort();
+
+        String contextPath=((VaadinServletRequest) VaadinService.getCurrentRequest()).getContextPath();
+
+        eventTransmitterService.setUrlOfWebModule(url+contextPath);
 
         User currentUser = getUserSession().getUser();
         uiAccessorCollector.addAccessor(window,"main",currentUser);

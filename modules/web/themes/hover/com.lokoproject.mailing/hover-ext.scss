@@ -41,7 +41,7 @@
   }
 
   .bell_notification::before {
-    color: black;
+    color: white;
    
     display: block;
     content: "\f0f3";
@@ -59,7 +59,7 @@
     right: -11px;
     padding: 4px 5px;
     line-height: 100%;
-    border: 3px #fff solid;
+    border: 3px #242424 solid;
     border-radius: 60px;
     background: #e84c0b;
     opacity: 0;

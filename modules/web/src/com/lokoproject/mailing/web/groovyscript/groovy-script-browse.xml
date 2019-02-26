@@ -88,9 +88,6 @@
                         <column width="250px">
                             <field property="name"
                                    required="true"/>
-                            <field property="returnType"
-                                   required="true"/>
-                            <field property="entityType"/>
                         </column>
                     </fieldGroup>
                 </scrollBox>

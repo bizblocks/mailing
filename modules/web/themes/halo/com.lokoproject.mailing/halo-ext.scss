@@ -1,9 +1,17 @@
 /* Define your theme modifications inside next mixin */
 @mixin com_lokoproject_mailing-halo-ext {
 
+
   .v-tree-node-caption.red{
     background-color: coral;
     border-radius: 4px;
+  }
+
+  .v-table-row-odd.bold {
+    font-weight:bold;
+  }
+  .v-table-row.bold {
+    font-weight:bold;
   }
 
   .container {
@@ -34,7 +42,7 @@
   }
 
   .bell_notification::before {
-    color: black;
+    color: white;
 
     display: block;
     content: "\f0f3";
@@ -52,7 +60,7 @@
     right: -11px;
     padding: 4px 5px;
     line-height: 100%;
-    border: 3px #fff solid;
+    border: 3px #242424 solid;
     border-radius: 60px;
     background: #e84c0b;
     opacity: 0;
@@ -90,7 +98,7 @@
 
   /* The actual popup */
   .bell_notification .bell-popuptext {
-    visibility: hidden;
+    //visibility: hidden;
     width: 20vw;
     background-color: white;
     font-size: 15px;
@@ -98,8 +106,8 @@
     border-radius: 3px;
     padding: 8px 0;
     position: absolute;
-    z-index: 1;
-    top: 100%;
+    //z-index: -100;
+    top: 10000%;
     left: 150%;
     margin-left: -80px;
     border: 1px solid #555;
@@ -119,9 +127,12 @@
 
 
   .bell_notification .show {
-    visibility: visible;
-    -webkit-animation: fadeIn 1s;
-    animation: fadeIn 1s;
+    top: 100%;
+    //visibility: visible;
+    -webkit-animation: fadeInDown 0.5s;
+    animation: fadeInDown 0.5s;
+    //opacity: 1;
+    //z-index: 1;
   }
 
   .notification-line{
@@ -148,7 +159,7 @@
     text-align:left;
     padding: 0 8px;
     cursor:pointer;
-    transition:0.3s;
+    transition:background-color 0.3s;
     border-radius:2px;
   }
 
@@ -170,6 +181,30 @@
   from {opacity: 0;}
   to {opacity:1 ;}
 }
+
+@keyframes fadeInDown {
+  from{
+    opacity: 0;
+    transform: translate3d(0, -20px, 0);
+  }
+  to{
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@-webkit-keyframes fadeInDown {
+  from{
+    opacity: 0;
+    transform: translate3d(0, -20px, 0);
+  }
+  to{
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
 @-webkit-keyframes ring {
   0% {
     -webkit-transform: rotate(35deg);

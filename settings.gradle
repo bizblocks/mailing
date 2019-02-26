@@ -1,5 +1,5 @@
 rootProject.name = 'mailing2'
-def modulePrefix = 'app'
+def modulePrefix = 'mailing'
 include(":${modulePrefix}-global", ":${modulePrefix}-core", ":${modulePrefix}-web", ":${modulePrefix}-web-themes")
 project(":${modulePrefix}-global").projectDir = new File(settingsDir, 'modules/global')
 project(":${modulePrefix}-core").projectDir = new File(settingsDir, 'modules/core')

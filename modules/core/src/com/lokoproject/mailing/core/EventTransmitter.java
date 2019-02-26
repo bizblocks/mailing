@@ -12,13 +12,10 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -31,6 +28,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 @SuppressWarnings("unchecked")
 public class EventTransmitter implements ApplicationListener<AbstractNotificationEvent> {
+    private String url ;
+
     @Override
     public void onApplicationEvent(AbstractNotificationEvent event) {
         if(event instanceof WebEvent){
@@ -56,12 +55,12 @@ public class EventTransmitter implements ApplicationListener<AbstractNotificatio
 
     private void sendEvent(WebEvent event) throws Exception {
 
-        String url = "http://192.168.0.2:8080/app/"+"event";
+        if(url==null) return;
 
         HttpClient httpClient = new DefaultHttpClient();
-        HttpPost httpPost = new HttpPost(url);
+        HttpPost httpPost = new HttpPost(getUrl());
         List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("event", serializeObject(event)));
+        params.add(new BasicNameValuePair("data", serializeObject(event)));
         try {
             httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
         } catch (Exception e) {
@@ -85,5 +84,15 @@ public class EventTransmitter implements ApplicationListener<AbstractNotificatio
         oos.writeObject( o );
         oos.close();
         return Base64.getEncoder().encodeToString(baos.toByteArray());
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        if(this.url==null) {
+            this.url = "http://"+url + "/rest/receiver/event";
+        }
     }
 }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<app-component xmlns="http://schemas.haulmont.com/cuba/app-component.xsd"
+               dependsOn="com.haulmont.cuba">
+    <module blocks="*"
+            name="global">
+        <artifact appJar="true"
+                  name="mailing-global"/>
+        <property name="cuba.persistenceConfig"
+                  value="+com/lokoproject/mailing/persistence.xml"/>
+        <property name="cuba.metadataConfig"
+                  value="+com/lokoproject/mailing/metadata.xml"/>
+        <property name="cuba.viewsConfig"
+                  value="+com/lokoproject/mailing/views.xml"/>
+    </module>
+    <module blocks="core"
+            dependsOn="global"
+            name="core">
+        <artifact appJar="true"
+                  name="mailing-core"/>
+        <artifact classifier="db"
+                  configuration="dbscripts"
+                  ext="zip"
+                  name="mailing-core"/>
+        <property name="cuba.springContextConfig"
+                  value="+com/lokoproject/mailing/spring.xml"/>
+        <property name="cuba.mainMessagePack"
+                  value="+com.lokoproject.mailing.core"/>
+    </module>
+    <module blocks="web"
+            dependsOn="global"
+            name="web">
+        <artifact appJar="true"
+                  name="mailing-web"/>
+        <artifact classifier="web"
+                  configuration="webcontent"
+                  ext="zip"
+                  name="mailing-web"/>
+        <artifact configuration="themes"
+                  name="mailing-web-themes"/>
+        <property name="cuba.springContextConfig"
+                  value="+com/lokoproject/mailing/web-spring.xml"/>
+        <property name="cuba.dispatcherSpringContextConfig"
+                  value="+com/lokoproject/mailing/web-dispatcher-spring.xml"/>
+        <property name="cuba.windowConfig"
+                  value="+com/lokoproject/mailing/web-screens.xml"/>
+        <property name="cuba.menuConfig"
+                  value="+com/lokoproject/mailing/web-menu.xml"/>
+        <property name="cuba.permissionConfig"
+                  value="+com/lokoproject/mailing/web-permissions.xml"/>
+        <property name="cuba.mainMessagePack"
+                  value="+com.lokoproject.mailing.web"/>
+    </module>
+    <module name="web-themes">
+        <artifact name="mailing-web-themes"/>
+    </module>
+</app-component>

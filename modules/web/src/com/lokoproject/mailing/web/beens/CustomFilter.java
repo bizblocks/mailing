@@ -23,47 +23,19 @@ import java.util.Base64;
 @Component
 public class CustomFilter extends CubaHttpFilter implements Filter {
 
-    private Events events;
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
 
 
-        if(events==null) events=AppBeans.get(Events.class);
+
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        if(events!=null){
-            if(request.getRequestURI().contains("event")) {
-
-                String serializedEvent=request.getParameter("event");
-                try {
-                    WebEvent event= (WebEvent) fromString(serializedEvent);
-                    publishEvent((ApplicationEvent) event);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }
 
         super.doFilter(request, response, chain);
     }
 
-
-    private void publishEvent(ApplicationEvent event){
-        events.publish( event);
-    }
-
-    private static Object fromString( String s ) throws IOException ,
-            ClassNotFoundException {
-        byte [] data = Base64.getDecoder().decode( s );
-        ObjectInputStream ois = new ObjectInputStream(
-                new ByteArrayInputStream(  data ) );
-        Object o  = ois.readObject();
-        ois.close();
-        return o;
-    }
 }

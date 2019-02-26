@@ -17,7 +17,7 @@ buildscript {
     }
 }
 
-def modulePrefix = 'app'
+def modulePrefix = 'mailing'
 
 def globalModule = project(":${modulePrefix}-global")
 def coreModule = project(":${modulePrefix}-core")
@@ -71,11 +71,17 @@ configure([globalModule, coreModule, webModule]) {
 configure(globalModule) {
 
     dependencies {
-        compile('com.fasterxml.jackson.core:jackson-annotations:2.9.6')
     }
     entitiesEnhancing {
         main {
             enabled = true
+        }
+    }
+
+    jar {
+        manifest {
+            attributes('App-Component-Id': cuba.artifact.group)
+            attributes('App-Component-Version': cuba.artifact.version + (cuba.artifact.isSnapshot ? '-SNAPSHOT' : ''))
         }
     }
 

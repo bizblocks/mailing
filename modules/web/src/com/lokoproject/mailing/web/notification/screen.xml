@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <window xmlns="http://schemas.haulmont.com/cuba/window.xsd"
-        caption="msg://caption"
+        caption="msg://my_notifications"
         class="com.lokoproject.mailing.web.notification.UserNotification"
         messagesPack="com.lokoproject.mailing.web.notification">
     <dsContext>
         <collectionDatasource id="notificationsDs"
                               class="com.lokoproject.mailing.entity.Notification">
             <query>
-                <![CDATA[select e from mailing$Notification e]]>
+                <![CDATA[select e from mailing$Notification e 
+where e.target.login=:session$userLogin]]>
             </query>
         </collectionDatasource>
         <collectionDatasource id="tableNotificationsDs"

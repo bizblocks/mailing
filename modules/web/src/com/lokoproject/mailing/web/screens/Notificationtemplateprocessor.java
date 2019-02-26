@@ -12,6 +12,7 @@ import com.haulmont.cuba.gui.data.DsBuilder;
 import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
 import com.haulmont.cuba.security.entity.User;
 import com.lokoproject.mailing.entity.JustTransient;
+import com.lokoproject.mailing.notification.template.TemplateWrapper;
 import com.lokoproject.mailing.notification.template.element.*;
 import com.lokoproject.mailing.notification.template.element.Link;
 import com.lokoproject.mailing.notification.template.element.Table;
@@ -34,14 +35,15 @@ public class Notificationtemplateprocessor extends AbstractWindow {
     @Inject
     private DaoService daoService;
 
-    private TemplateContainerElement notificationTemplate;
+    private TemplateWrapper notificationTemplate;
 
     @Override
     public void init(Map<String,Object> params){
-        notificationTemplate= (TemplateContainerElement) params.get("notificationTemplate");
+        notificationTemplate= (TemplateWrapper) params.get("notificationTemplate");
 
         if(notificationTemplate!=null){
             createComponentsByTemplate();
+            setCaption(notificationTemplate.getTheme());
         }
 
     }

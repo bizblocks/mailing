@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * @author Antonlomako. created on 13.12.2018.
  */
-@Component
+@Component("mailingUiAccessorCollector")
 public class UiAccessorCollector {
 
 //    @Inject

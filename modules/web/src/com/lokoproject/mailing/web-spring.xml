@@ -18,6 +18,8 @@
                        value="com.lokoproject.mailing.service.IdentifierService"/>
                 <entry key="mailing_BotService"
                        value="com.lokoproject.mailing.service.BotService"/>
+                <entry key="mailing_EventTransmitterService"
+                       value="com.lokoproject.mailing.service.EventTransmitterService"/>
             </map>
         </property>
     </bean>

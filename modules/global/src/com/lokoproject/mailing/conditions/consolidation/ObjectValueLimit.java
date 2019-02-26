@@ -16,7 +16,7 @@ public class ObjectValueLimit extends AbstractConsolidationCondition {
     @Override
     public boolean check(Map<String, Object> params) throws ConditionException {
         fillFieldsFromParamMap(params);
-        return getObjectsValue() >objectLimit;
+        return getObjectsValue() >=objectLimit;
     }
 
     @Override
