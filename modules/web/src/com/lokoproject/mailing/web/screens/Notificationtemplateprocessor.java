@@ -20,6 +20,7 @@ import com.lokoproject.mailing.service.DaoService;
 import com.lokoproject.mailing.utils.HtmlTemplateHelper;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,13 +50,19 @@ public class Notificationtemplateprocessor extends AbstractWindow {
     }
 
     private void createComponentsByTemplate() {
-        createComponentsByTemplateRecur(notificationTemplate);
+        VBoxLayout vBoxLayout=componentsFactory.createComponent(VBoxLayout.class);
+        vBoxLayout.setWidth("100%");
+        vBoxLayout.setSpacing(true);
+        add(vBoxLayout);
+        createComponentsByTemplateRecur(vBoxLayout,notificationTemplate);
     }
 
-    private void createComponentsByTemplateRecur(TemplateElement templateElement) {
+    private void createComponentsByTemplateRecur(Container layout,TemplateElement templateElement) {
         if(templateElement instanceof TemplateContainerElement){
             TemplateContainerElement container= (TemplateContainerElement) templateElement;
-            container.getChildren().forEach(this::createComponentsByTemplateRecur);
+            container.getChildren().forEach(item->{
+                createComponentsByTemplateRecur(layout,item);
+            });
         }
         else{
             Component result=null;
@@ -72,7 +79,7 @@ public class Notificationtemplateprocessor extends AbstractWindow {
                 result=createTable((Table) templateElement);
             }
             if(result!=null){
-                add(result);
+                layout.add(result);
             }
         }
     }
@@ -131,6 +138,8 @@ public class Notificationtemplateprocessor extends AbstractWindow {
             entityTableRowMap.put(entity,item);
         });
         tableComponent.setDatasource(ds);
+        ArrayList<com.haulmont.cuba.gui.components.Table.Column> columns=new ArrayList<>(tableComponent.getColumns());
+        columns.forEach(tableComponent::removeColumn);
 
         //если строка связана с сущностью,то по двойному кику откроется редактор
         if(loadEntity){

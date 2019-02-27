@@ -2,6 +2,9 @@ package com.lokoproject.mailing.notification.template;
 
 import com.haulmont.chile.core.model.MetaProperty;
 import com.haulmont.cuba.core.entity.StandardEntity;
+import com.haulmont.cuba.core.global.AppBeans;
+import com.haulmont.cuba.core.global.MessageTools;
+import com.haulmont.cuba.core.global.Messages;
 import com.lokoproject.mailing.notification.template.element.*;
 import com.lokoproject.mailing.notification.template.style.ElementStyle;
 
@@ -196,7 +199,8 @@ public class TemplateBuilder {
                     headerCell.setContent(headerLocalizationMap.get(item));
                 }
                 else{
-                    headerCell.setContent(item);
+                    MessageTools messages= AppBeans.get(MessageTools.class);
+                    headerCell.setContent(messages.getPropertyCaption(source.getMetaClass(),item));
                 }
                 header.getCells().add(headerCell);
             });
@@ -209,6 +213,8 @@ public class TemplateBuilder {
                     columns.forEach(column->{
                         row.getCells().add(getFormattedCell(entity.getValueEx(column),column));
                     });
+                    row.setEntityId(entity.getId().toString());
+                    row.setEntityClass(source.getMetaClass().getName());
                     table.getRows().add(row);
                 });
             }

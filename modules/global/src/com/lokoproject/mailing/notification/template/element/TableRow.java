@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public class TableRow implements Serializable {
     private java.util.List<TableCell> cells=new ArrayList<>();
-    private UUID entityId;
+    private String entityId;
     private String entityClass;
 
     public java.util.List<TableCell> getCells() {
@@ -20,11 +20,11 @@ public class TableRow implements Serializable {
         this.cells = cells;
     }
 
-    public UUID getEntityId() {
+    public String getEntityId() {
         return entityId;
     }
 
-    public void setEntityId(UUID entityId) {
+    public void setEntityId(String entityId) {
         this.entityId = entityId;
     }
 

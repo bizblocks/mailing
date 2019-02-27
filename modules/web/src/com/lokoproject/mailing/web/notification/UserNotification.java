@@ -80,7 +80,7 @@ public class UserNotification extends AbstractWindow {
             return null;
         });
 
-        notificationTable.sort("sendDate", Table.SortDirection.ASCENDING);
+        notificationTable.sort("sendDate", Table.SortDirection.DESCENDING);
     }
 
     @Override
