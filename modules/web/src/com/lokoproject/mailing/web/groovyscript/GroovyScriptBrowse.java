@@ -37,7 +37,9 @@ public class GroovyScriptBrowse extends EntityCombinedScreen {
         });
 
         groovyScriptDs.addItemChangeListener(event->{
-            script.setValue(groovyScriptDs.getItem().getScript());
+            script.setValue(groovyScriptDs.getItem()==null?
+                    null:
+                    groovyScriptDs.getItem().getScript());
         });
     }
 

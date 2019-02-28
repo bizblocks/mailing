@@ -8,8 +8,7 @@
                               class="com.lokoproject.mailing.entity.Notification">
             <query>
                 <![CDATA[select e from mailing$Notification e 
-where e.target.login=:session$userLogin 
-and e.stage != com.lokoproject.mailing.entity.NotificationStage.Consolidation]]>
+where e.target.login=:session$userLogin ]]>
             </query>
         </collectionDatasource>
         <collectionDatasource id="tableNotificationsDs"

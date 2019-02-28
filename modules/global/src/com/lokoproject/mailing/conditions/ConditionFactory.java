@@ -1,14 +1,9 @@
 package com.lokoproject.mailing.conditions;
 
-import com.haulmont.cuba.core.global.AppBeans;
-import com.haulmont.cuba.core.global.Metadata;
-import com.haulmont.cuba.core.global.Scripting;
-import com.lokoproject.mailing.conditions.consolidation.HourPeriod;
+import com.lokoproject.mailing.conditions.consolidation.MinutePeriod;
 import com.lokoproject.mailing.conditions.consolidation.ObjectValueLimit;
 import com.lokoproject.mailing.conditions.schedule.*;
-import com.lokoproject.mailing.utils.ReflectionHelper;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -66,7 +61,7 @@ public class ConditionFactory {
 
         if(conditionClasses ==null) {
             conditionClasses=new ArrayList<>();
-            conditionClasses.add(HourPeriod.class);
+            conditionClasses.add(MinutePeriod.class);
             conditionClasses.add(ObjectValueLimit.class);
             conditionClasses.add(DateDuration.class);
             conditionClasses.add(DayOfMonth.class);

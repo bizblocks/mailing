@@ -94,13 +94,17 @@ public class NotificationServiceBean implements NotificationService {
         if((mailing.getConsolidationCondition()==null)&&(mailing.getConsolidationGroovy()==null)) return true;
 
         Date lastSendDate=null;
+        lastSendDateMap.putIfAbsent(notification.getMailing(),new HashMap<>());
         Map<User,Date> userDateMap=lastSendDateMap.get(notification.getMailing());
-        if(userDateMap!=null){
-            lastSendDate=userDateMap.get(notification.getTarget());
-        }
+        assert (userDateMap!=null);
+
+        lastSendDate=userDateMap.get(notification.getTarget());
         if(lastSendDate==null){
             lastSendDate=now;   //чтобы при запуске системы сразу накапливаемые уведомления не отправлялись
+            userDateMap.put(notification.getTarget(),now);
         }
+
+
 
         if(mailing.getConsolidationCondition()!=null){
 
@@ -235,7 +239,8 @@ public class NotificationServiceBean implements NotificationService {
             Map<String, Object> binding = new HashMap<>();
             binding.put("object", object);
 
-            return (Collection<User>) scripting.evaluateGroovy(mailing.getMailingTargetScript().getScript(), binding);
+            Collection<User> result= scripting.evaluateGroovy(mailing.getMailingTargetScript().getScript(), binding);
+            return result;
 
         } catch (Exception e) {
             return Collections.emptyList();
