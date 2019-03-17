@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<window xmlns="http://schemas.haulmont.com/cuba/window.xsd"
+        caption="msg://caption"
+        class="com.lokoproject.mailing.web.mailing.Mailingmanager"
+        messagesPack="com.lokoproject.mailing.web.mailing">
+    <dsContext>
+        <collectionDatasource id="mailingsDs"
+                              class="com.lokoproject.mailing.entity.Mailing"
+                              view="mailing-full">
+            <query>
+                <![CDATA[select e from mailing$Mailing e]]>
+            </query>
+        </collectionDatasource>
+        <groupDatasource id="notificationsDs"
+                         allowCommit="false"
+                         class="com.lokoproject.mailing.entity.Notification"
+                         view="notification-full">
+            <query>
+                <![CDATA[select e from mailing$Notification e where e.mailing.id=:ds$mailingsDs.id]]>
+            </query>
+        </groupDatasource>
+    </dsContext>
+    <dialogMode height="600"
+                width="800"/>
+    <layout>
+        <vbox expand="split"
+              height="100%"
+              spacing="true">
+            <buttonsPanel>
+                <button id="activate"
+                        caption="msg://activate"
+                        invoke="onActivateClick"/>
+                <button id="deactivate"
+                        caption="msg://deactivate"
+                        invoke="onDeactivateClick"/>
+                <button id="sendAgain"
+                        caption="msg://send_again"
+                        invoke="onSendAgainClick"/>
+                <button id="updateMailings"
+                        caption="msg://update_mailings"
+                        invoke="onUpdateMailingsClick"/>
+            </buttonsPanel>
+            <split id="split"
+                   orientation="horizontal"
+                   pos="30"
+                   width="100%">
+                <table id="mailingsTable"
+                       height="100%"
+                       width="100%">
+                    <columns>
+                        <column id="name"/>
+                        <column id="activated"/>
+                    </columns>
+                    <rows datasource="mailingsDs"/>
+                </table>
+                <groupTable id="notificationsTable"
+                            height="100%"
+                            width="100%">
+                    <columns>
+                        <group>
+                            <column id="target"/>
+                            <column id="stage"/>
+                        </group>
+                        <column id="sendDate"/>
+                    </columns>
+                    <rows datasource="notificationsDs"/>
+                </groupTable>
+            </split>
+        </vbox>
+    </layout>
+</window>

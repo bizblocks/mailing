@@ -85,11 +85,10 @@
                                 datasource="mailingDs"
                                 width="100%">
                         <column width="400px">
-                            <field property="mailingTargetScript"/>
-                            <field property="objectFilterScript"/>
-                            <field property="finalCheckScript"/>
-                            <field property="finalDecorationScript"/>
                             <field property="name"/>
+                            <field property="stringId"/>
+                            <field property="objectFilterScript"/>
+                            <field property="mailingTargetScript"/>
                             <field property="notificationBuildScript"/>
                         </column>
                     </fieldGroup>

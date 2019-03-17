@@ -187,6 +187,11 @@ public class TemplateBuilder {
                     properties.forEach(item->{
                         columns.add(item.getName());
                     });
+                    generatedColumnsMap.keySet().forEach(generatedColumn->{
+                        if(!columns.contains(generatedColumn)){
+                            columns.add(generatedColumn);
+                        }
+                    });
                 }
                 else{
                     data.get(0).keySet().forEach(columns::add);
@@ -199,8 +204,13 @@ public class TemplateBuilder {
                     headerCell.setContent(headerLocalizationMap.get(item));
                 }
                 else{
-                    MessageTools messages= AppBeans.get(MessageTools.class);
-                    headerCell.setContent(messages.getPropertyCaption(source.getMetaClass(),item));
+                    if(source!=null) {
+                        MessageTools messages = AppBeans.get(MessageTools.class);
+                        headerCell.setContent(messages.getPropertyCaption(source.getMetaClass(), item));
+                    }
+                    else{
+                        headerCell.setContent(item);
+                    }
                 }
                 header.getCells().add(headerCell);
             });
@@ -211,6 +221,12 @@ public class TemplateBuilder {
                 entityData.forEach(entity -> {
                     TableRow row=new TableRow();
                     columns.forEach(column->{
+                        if(generatedColumnsMap.size()>0){
+                            if(generatedColumnsMap.keySet().contains(column)){
+                                row.getCells().add(getFormattedCell(generatedColumnsMap.get(column).generateCellValue(entity),column));
+                                return;
+                            }
+                        }
                         row.getCells().add(getFormattedCell(entity.getValueEx(column),column));
                     });
                     row.setEntityId(entity.getId().toString());

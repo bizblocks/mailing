@@ -13,7 +13,9 @@ public class EventTransmitterServiceBean implements EventTransmitterService {
 
     @Override
     public void setUrlOfWebModule(String url){
-        eventTransmitter.setUrl(url);
+        if(!url.contains("localhost")){
+            eventTransmitter.setUrl(url);
+        }
     }
 
 }

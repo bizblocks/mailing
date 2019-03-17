@@ -13,6 +13,7 @@ import com.lokoproject.mailing.notification.event.AbstractNotificationEvent;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.entity.Notification;
 import com.lokoproject.mailing.notification.template.TemplateWrapper;
+import com.lokoproject.mailing.utils.EntityUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -62,10 +63,12 @@ public class NotificationServiceBean implements NotificationService {
 
         Collection<Mailing> mailings=getAllMailings();
         mailings.forEach(mailing->{
-            if(isAcceptableForObject(mailing,object)){
-                getUsersToNotify(mailing,object).forEach(user->{
-                    addObjectToNotification(user,mailing,object);
-                });
+            if(mailing.getActivated()){
+                if(isAcceptableForObject(mailing,object)){
+                    getUsersToNotify(mailing,object).forEach(user->{
+                        addObjectToNotification(user,mailing,object);
+                    });
+                }
             }
         });
     }
@@ -90,12 +93,12 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     private boolean canSendNow(Notification notification, Date now) {
-        Mailing mailing=notification.getMailing();
+        Mailing mailing= getMailingOfNotification(notification);
         if((mailing.getConsolidationCondition()==null)&&(mailing.getConsolidationGroovy()==null)) return true;
 
         Date lastSendDate=null;
-        lastSendDateMap.putIfAbsent(notification.getMailing(),new HashMap<>());
-        Map<User,Date> userDateMap=lastSendDateMap.get(notification.getMailing());
+        lastSendDateMap.putIfAbsent( getMailingOfNotification(notification),new HashMap<>());
+        Map<User,Date> userDateMap=lastSendDateMap.get( getMailingOfNotification(notification));
         assert (userDateMap!=null);
 
         lastSendDate=userDateMap.get(notification.getTarget());
@@ -200,7 +203,7 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     private void updateNotificationInMap(Notification notification){
-        Map<User,Notification> userNotificationMap=mailingMap.get(notification.getMailing());
+        Map<User,Notification> userNotificationMap=mailingMap.get( getMailingOfNotification(notification));
         if((userNotificationMap==null)||(userNotificationMap.get(notification.getTarget())==null)) return;
         userNotificationMap.put(notification.getTarget(),notification);
     }
@@ -282,7 +285,7 @@ public class NotificationServiceBean implements NotificationService {
         try {
 
             List<AbstractNotificationEvent> notificationEvents=new ArrayList<>();
-            for(String performer: notification.getMailing().getMailingPerformers().split(";")){
+            for(String performer:  getMailingOfNotification(notification).getMailingPerformers().split(";")){
                 try{
                     notificationEvents.add(getNotificationEvent(performer));
                 }
@@ -292,7 +295,9 @@ public class NotificationServiceBean implements NotificationService {
 
             notification.setStage(NotificationStage.AFTER_CONSOLIDATION);
             notification.setSendDate(timeSource.currentTimestamp());
-            notification.setTemplate(buildNotificationTemplate(notification.getMailing(),notification.getObjects()));
+            if(notification.getTemplate()==null){
+                notification.setTemplate(buildNotificationTemplate( getMailingOfNotification(notification),notification.getObjects()));
+            }
 
             makeRecordOfNotificationStateChange(notification,NotificationStage.AFTER_CONSOLIDATION);
             updateNotificationInMap(dataManager.commit(notification,"notification-full"));
@@ -302,13 +307,23 @@ public class NotificationServiceBean implements NotificationService {
                 events.publish(notificationEvent);
             });
 
-            lastSendDateMap.putIfAbsent(notification.getMailing(),new HashMap<>());
-            lastSendDateMap.get(notification.getMailing()).put(notification.getTarget(),notification.getSendDate());
+            lastSendDateMap.putIfAbsent( getMailingOfNotification(notification),new HashMap<>());
+            lastSendDateMap.get( getMailingOfNotification(notification)).put(notification.getTarget(),notification.getSendDate());
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+    
+    private Mailing getMailingOfNotification(Notification notification){
+        if(notification.getMailing()==null) return null;
+        for(Mailing mailing:mailingMap.keySet()){
+            if(mailing.equals( notification.getMailing())){
+                return mailing;
+            }
+        }
+        return notification.getMailing();
     }
 
     private Map<String,Class> mailingEventsMap=new HashMap<>();
@@ -344,7 +359,7 @@ public class NotificationServiceBean implements NotificationService {
         actualNotificationMap.values().forEach(notification -> {
             if(notification.getStage().equals(NotificationStage.AFTER_CONSOLIDATION)||(notification.getStage().equals(NotificationStage.PROCESSED))){
                 if(notification.getTarget().equals(user)){
-                    if(notification.getMailing().getMailingPerformers().contains(notificationAgent)){
+                    if( getMailingOfNotification(notification).getMailingPerformers().contains(notificationAgent)){
                         result.add(notification);
                     }
                 }
@@ -354,6 +369,17 @@ public class NotificationServiceBean implements NotificationService {
         Collections.sort(result,(n1,n2)-> n1.getSendDate().compareTo(n2.getSendDate()));
 
         return result;
+    }
+
+    @Override
+    public void sendNotificationAgain(Notification notification, boolean consolidate) {
+        //// TODO: 17.03.2019 придумать, как использовать консолидацию для отправленног уведомления
+        Notification notificationCopy=metadata.create(Notification.class);
+        notificationCopy = (Notification) EntityUtil.createEntityCopy(notification,notificationCopy,false,Arrays.asList("id"));
+        notificationCopy.setTemplate(notification.getTemplate());
+        notificationCopy.setStage(NotificationStage.AFTER_CONSOLIDATION);
+        notificationCopy=dataManager.commit(notificationCopy,"notification-full");
+        dispatchNotification(notificationCopy);
     }
 
 

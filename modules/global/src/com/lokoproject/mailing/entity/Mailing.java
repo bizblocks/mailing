@@ -17,6 +17,12 @@ public class Mailing extends StandardEntity {
     @JoinColumn(name = "MAILING_TARGET_SCRIPT_ID")
     protected GroovyScript mailingTargetScript;
 
+    @Column(name = "ACTIVATED")
+    protected Boolean activated=true;
+
+    @Column(name = "STRING_ID")
+    protected String stringId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CONSOLIDATION_GROOVY_ID")
     protected GroovyScript consolidationGroovy;
@@ -49,6 +55,24 @@ public class Mailing extends StandardEntity {
 
     @Transient
     private OrCondition consolidationCondition=new OrCondition();
+
+    public void setActivated(Boolean activated) {
+        this.activated = activated;
+    }
+
+    public Boolean getActivated() {
+        return activated;
+    }
+
+
+    public void setStringId(String stringId) {
+        this.stringId = stringId;
+    }
+
+    public String getStringId() {
+        return stringId;
+    }
+
 
     public void setMailingPerformers(String mailingPerformers) {
         this.mailingPerformers = mailingPerformers;

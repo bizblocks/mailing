@@ -10,6 +10,8 @@ create table MAILING_MAILING (
     DELETED_BY varchar(50),
     --
     MAILING_TARGET_SCRIPT_ID uuid,
+    ACTIVATED boolean,
+    STRING_ID varchar(255),
     CONSOLIDATION_GROOVY_ID uuid,
     CONSOLIDATION_JSON text,
     NOTIFICATION_BUILD_SCRIPT_ID uuid,
