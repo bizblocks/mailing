@@ -30,7 +30,6 @@ public class MailingEntityListener implements BeforeDetachEntityListener<Mailing
             OrCondition condition=mapper.readValue(entity.getConsolidationConditionJson(), OrCondition.class);
             entity.setConsolidationCondition(condition);
         } catch (Exception ignored) {
-            ignored.printStackTrace();
         }
     }
 
@@ -46,7 +45,6 @@ public class MailingEntityListener implements BeforeDetachEntityListener<Mailing
                 entity.setConsolidationConditionJson(conditionJson);
             }
         } catch (JsonProcessingException ignored) {
-            ignored.printStackTrace();
         }
     }
 

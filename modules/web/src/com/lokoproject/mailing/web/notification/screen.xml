@@ -5,10 +5,13 @@
         messagesPack="com.lokoproject.mailing.web.notification">
     <dsContext>
         <collectionDatasource id="notificationsDs"
+                              allowCommit="false"
                               class="com.lokoproject.mailing.entity.Notification">
             <query>
                 <![CDATA[select e from mailing$Notification e 
-where e.target.login=:session$userLogin ]]>
+where e.target.login=:session$userLogin 
+and (e.stage=30 
+      or e.stage=40)]]>
             </query>
         </collectionDatasource>
         <collectionDatasource id="tableNotificationsDs"

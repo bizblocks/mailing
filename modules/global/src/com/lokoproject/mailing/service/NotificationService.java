@@ -27,4 +27,6 @@ public interface NotificationService {
     Notification getNotificationById(String id);
 
     List<Notification> getActualUserNotifications(User user, String notificationAgent);
+
+    void sendNotificationAgain(Notification notification,boolean consolidate);
 }
