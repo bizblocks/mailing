@@ -7,5 +7,6 @@
         <item screen="screen"/>
         <item screen="userNotification"/>
         <item screen="mailingManager"/>
+        <item screen="mailing$WayToGetMailingIdentifier.browse"/>
     </menu>
 </menu-config>

@@ -9,4 +9,9 @@ public class CubaEmailNotificationEvent extends AbstractNotificationEvent {
     public CubaEmailNotificationEvent(){
         super("email_notification");
     }
+
+    @Override
+    public String getDefaultIdentifierName() {
+        return "email";
+    }
 }

@@ -1,11 +1,14 @@
 package com.lokoproject.mailing.web.mailing;
 
 import com.haulmont.bali.util.ParamsMap;
+import com.haulmont.bali.util.ReflectionHelper;
 import com.haulmont.cuba.core.global.Metadata;
 import com.haulmont.cuba.core.global.TimeSource;
 import com.haulmont.cuba.gui.WindowManager;
 import com.haulmont.cuba.gui.components.*;
 import com.haulmont.cuba.gui.components.actions.BaseAction;
+import com.haulmont.cuba.gui.components.actions.CreateAction;
+import com.haulmont.cuba.gui.data.CollectionDatasource;
 import com.haulmont.cuba.gui.xml.DeclarativeAction;
 import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
 import com.lokoproject.mailing.entity.GroovyScript;
@@ -22,6 +25,9 @@ public class MailingBrowse extends EntityCombinedScreen {
 
     @Inject
     private FieldGroup fieldGroup;
+    
+    @Inject
+    private ButtonsPanel buttonsPanel;
 
     @Inject
     private ComponentsFactory componentsFactory;
@@ -35,9 +41,37 @@ public class MailingBrowse extends EntityCombinedScreen {
     @Inject
     private NotificationService notificationService;
 
+    @Inject
+    private CollectionDatasource<Mailing,UUID> mailingsDs;
+
+    @Inject
+    private Button createBtn;
+
+    @Inject
+    private Filter filter;
+
+    @Inject
+    private Table table;
+
     @Override
     public void init(Map<String,Object> params){
         super.init(params);
+
+        mailingsDs.refresh(ParamsMap.of("idForPersonalSettings",params.get("idForPersonalSettings")
+                ,"typeForPersonalSettings",params.get("typeForPersonalSettings")));
+
+        if((params.get("idForPersonalSettings")!=null)||(params.get("typeForPersonalSettings")!=null)){
+
+            filter.setVisible(false);
+            hideNotPersonalizedFields();
+            addUseDefaultField();
+
+            CreateAction createAction = (CreateAction) table.getAction("create");
+            createAction.setEnabled(false);
+        }
+        else{
+            hideOnlyPersonalizedFields();
+        }
 
         DeclarativeAction saveAction= (DeclarativeAction) getAction("save");
         removeAction(saveAction);
@@ -52,9 +86,51 @@ public class MailingBrowse extends EntityCombinedScreen {
         };
         addAction(saveWithUpdateAction);
 
+        DeclarativeAction removeAction= (DeclarativeAction) getAction("remove");
+        removeAction(saveAction);
+
+        BaseAction removeWithUpdateAction=new BaseAction("remove"){
+            @Override
+            public void actionPerform(Component component){
+                assert removeAction != null;
+                notificationService.onRemoveMailing((Mailing) getTable().getDatasource().getItem());
+                removeAction.actionPerform(component);
+            }
+        };
+        addAction(saveWithUpdateAction);
+
         addConditionSwitcherFieldForProperty("consolidation");
 
         initMailingPerformersField();
+
+    }
+
+
+    private void hideOnlyPersonalizedFields() {
+        List<String> personalizedFields=new ArrayList<>();
+        for(java.lang.reflect.Field field:Mailing.class.getDeclaredFields()){
+            if(((field.getAnnotation(Mailing.PersonalizedOnly.class)!=null))){
+                FieldGroup.FieldConfig f=fieldGroup.getField(field.getName());
+                if(f!=null){
+                    f.setVisible(false);
+                }
+            }
+        }
+    }
+
+    private void addUseDefaultField() {
+    }
+
+    private void hideNotPersonalizedFields() {
+        List<String> personalizedFields=new ArrayList<>();
+        for(java.lang.reflect.Field field:Mailing.class.getDeclaredFields()){
+            if((field.getAnnotation(Mailing.Personalized.class)==null)||((field.getAnnotation(Mailing.PersonalizedOnly.class)==null))){
+                FieldGroup.FieldConfig f=fieldGroup.getField(field.getName());
+                if(f!=null){
+                    f.setVisible(false);
+                }
+            }
+        }
 
     }
 
@@ -68,7 +144,13 @@ public class MailingBrowse extends EntityCombinedScreen {
 
 
         OptionsGroup optionsGroup=componentsFactory.createComponent(OptionsGroup.class);
-        optionsGroup.setOptionsList(Arrays.asList("CubaWebClient","CubaEmail"));
+
+        Collection<Class> performersClassList=(List) com.lokoproject.mailing.utils.ReflectionHelper.getAllAvailableNotificationEvents();
+        List<String> performersNameList=new ArrayList<>();
+        performersClassList.forEach(classItem->{
+            performersNameList.add(classItem.getSimpleName().replace("NotificationEvent",""));
+        });
+        optionsGroup.setOptionsList(performersNameList);
         optionsGroup.setMultiSelect(true);
         optionsGroup.addValueChangeListener(event->{
             Collection<String> selected= (Collection<String>) event.getValue();
@@ -114,10 +196,9 @@ public class MailingBrowse extends EntityCombinedScreen {
 
     private void addConditionSwitcherFieldForProperty(String propName){
         String propDisplayedName=String.format("%s %s",getMessage(propName),getMessage("condition"));
-        fieldGroup.addField(fieldGroup.createField(propDisplayedName));
-
-        FieldGroup.FieldConfig fieldConfig=fieldGroup.getField(propDisplayedName);
+        FieldGroup.FieldConfig fieldConfig=fieldGroup.createField("consolidationCondition");
         fieldConfig.setCaption(propDisplayedName);
+        fieldGroup.addField(fieldConfig);
 
         HBoxLayout hBoxLayout=componentsFactory.createComponent(HBoxLayout.class);
         LookupField lookupField=componentsFactory.createComponent(LookupField.class);

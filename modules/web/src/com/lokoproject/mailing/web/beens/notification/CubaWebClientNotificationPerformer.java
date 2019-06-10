@@ -2,6 +2,7 @@ package com.lokoproject.mailing.web.beens.notification;
 
 import com.haulmont.bali.util.ParamsMap;
 import com.haulmont.cuba.core.global.AppBeans;
+import com.haulmont.cuba.core.global.GlobalConfig;
 import com.haulmont.cuba.core.sys.AppContext;
 import com.haulmont.cuba.core.sys.SecurityContext;
 import com.haulmont.cuba.gui.WindowManager;
@@ -11,10 +12,12 @@ import com.haulmont.cuba.gui.components.Window;
 import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
 import com.haulmont.cuba.security.entity.User;
 import com.haulmont.cuba.security.global.UserSession;
+import com.haulmont.restapi.auth.CubaAnonymousAuthenticationToken;
 import com.lokoproject.mailing.entity.Notification;
 import com.lokoproject.mailing.entity.NotificationStage;
 import com.lokoproject.mailing.notification.event.CubaWebClientNotificationEvent;
 import com.lokoproject.mailing.service.EventTransmitterService;
+import com.lokoproject.mailing.service.IdentifierService;
 import com.lokoproject.mailing.service.NotificationService;
 import com.lokoproject.mailing.web.beens.ui.UiAccessorCollector;
 import com.lokoproject.mailing.web.notification.UserNotification;
@@ -25,10 +28,13 @@ import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.JavaScriptFunction;
 import elemental.json.JsonArray;
 import org.springframework.context.ApplicationListener;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Antonlomako. created on 02.02.2019.
@@ -45,15 +51,28 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
     @Inject
     private EventTransmitterService eventTransmitterService;
 
+    @Inject
+    private IdentifierService identifierService;
+
+    @Inject
+    protected GlobalConfig globalConfig;
+
 
     private UserSession userSession;
     private ComponentsFactory componentsFactory;
+    private SecurityContext securityContext;
 
 
     @Override
     public void onApplicationEvent(CubaWebClientNotificationEvent event) {
 
-        showDesktopNotificationToUser(event.getNotification().getTarget()
+        initSecurityContext();
+
+        String userIdentifier=identifierService.getIdentifier(event.getNotification().getTargetEntityType()
+                ,event.getNotification().getTargetEntityUuid().toString()
+                ,"CubaWebClient");
+
+        showDesktopNotificationToUser(userIdentifier
                 ,event.getNotification().getTemplate().getDescription()
                 ,event.getNotification().getTemplate().getTheme()
                 ,event.getNotification().getTemplate().getIconName()
@@ -65,24 +84,36 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
                 }
         );
 
-        uiAccessorCollector.executeFor(event.getNotification().getTarget(),"notification",(window -> {
+        uiAccessorCollector.executeFor(userIdentifier,"notification",(window -> {
             if(window instanceof Notificationbell){
                 Notificationbell notification= (Notificationbell) window;
                 notification.addNotification(event.getNotification());
             }
         }));
 
-        uiAccessorCollector.executeFor(event.getNotification().getTarget(),"userNotification",(window -> {
+        uiAccessorCollector.executeFor(userIdentifier,"userNotification",(window -> {
             if(window instanceof UserNotification){
                 UserNotification userNotification= (UserNotification) window;
                 userNotification.updateNotificationStageInTable(event.getNotification());
             }
         }));
 
-        uiAccessorCollector.executeFor(event.getNotification().getTarget(),"main",(window)->{
+        uiAccessorCollector.executeFor(userIdentifier,"main",(window)->{
             notificationService.updateNotificationStage(event.getNotification(), NotificationStage.PROCESSED);
             // TODO: 08.02.2019 перенести в отдельный метод и выполнять асинхронно
         });
+    }
+
+    private void initSecurityContext(){
+        if(securityContext!=null){
+            AppContext.setSecurityContext(securityContext);
+        }
+        UUID anonymousSessionId = globalConfig.getAnonymousSessionId();
+        CubaAnonymousAuthenticationToken anonymousAuthenticationToken =
+                new CubaAnonymousAuthenticationToken("anonymous", AuthorityUtils.createAuthorityList("ROLE_CUBA_ANONYMOUS"));
+        SecurityContextHolder.getContext().setAuthentication(anonymousAuthenticationToken);
+        securityContext=new SecurityContext(anonymousSessionId);
+        AppContext.setSecurityContext(securityContext);
     }
 
     public void onNotificationClick(Notification notification, String windowHash){
@@ -118,9 +149,6 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
             });
         });
 
-
-
-
     }
 
     public UserSession getUserSession() {
@@ -138,9 +166,9 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
         void onClick(Window window, JsonArray arguments);
     }
 
-    public void showDesktopNotificationToUser(User user, String header, String content,String icon,String clickParameter,NotificationClickListener clickListener){
+    public void showDesktopNotificationToUser(String userIdentifier, String header, String content,String icon,String clickParameter,NotificationClickListener clickListener){
 
-        uiAccessorCollector.executeOnceFor(user,"main",(window)->{
+        uiAccessorCollector.executeOnceFor(userIdentifier,"main",(window)->{
             if(clickListener!=null){
                 JavaScript.getCurrent().addFunction("onNotificationClick", (JavaScriptFunction) arguments -> clickListener.onClick(window,  arguments));
             }

@@ -37,6 +37,8 @@ public class UiAccessorCollector {
     private UserSessionSource userSessionSource;
 
     private Map<User,Map<String,AccessorWrapper>> uiAccessorMap=new ConcurrentHashMap<>();
+    private Map<String,User> loginUserMap=new ConcurrentHashMap<>();
+    private Map<String,User> uuidUserMap=new ConcurrentHashMap<>();
 
     public void addAccessor(Window window, User currentUser){
         addAccessor(window,window.getId(),currentUser);
@@ -48,6 +50,8 @@ public class UiAccessorCollector {
         if(userAccessorMap==null){
             userAccessorMap=new ConcurrentHashMap<>();
             uiAccessorMap.put(currentUser,userAccessorMap);
+            loginUserMap.put(currentUser.getLogin(),currentUser);
+            loginUserMap.put(currentUser.getId().toString(),currentUser);
         }
         AccessorWrapper accessorWrapper=userAccessorMap.get(id);
         if(accessorWrapper==null){
@@ -71,6 +75,20 @@ public class UiAccessorCollector {
         executeFor(targetUser,targetScreen,uiOperation,false,null);
     }
 
+    public void executeFor(String targetUserIdentifier, String targetScreen, UiOperation uiOperation){
+        User user=loginUserMap.get(targetUserIdentifier);
+        if(user==null) user=uuidUserMap.get(targetUserIdentifier);
+        if(user==null) return;
+        executeFor(user,targetScreen,uiOperation,false,null);
+    }
+
+    public void executeOnceFor(String targetUserIdentifier, String targetScreen, UiOperation uiOperation){
+        User user=loginUserMap.get(targetUserIdentifier);
+        if(user==null) user=uuidUserMap.get(targetUserIdentifier);
+        if(user==null) return;
+        executeFor(user,targetScreen,uiOperation,true,null);
+    }
+
     public void executeOnceFor(User targetUser, String targetScreen, UiOperation uiOperation){
         executeFor(targetUser,targetScreen,uiOperation,true,null);
     }
@@ -85,12 +103,11 @@ public class UiAccessorCollector {
         if(accessorWrapper==null) return;
         List<UIAccessor> accessorsToRemove=new ArrayList<UIAccessor>();
 
+        class ExecuteChecker{
+            boolean executed=false;
+        }
+        ExecuteChecker executeChecker=new ExecuteChecker();
         for(UIAccessor accessor:accessorWrapper.getUiAccessors()){
-            class ExecuteChecker{
-                boolean executed=false;
-            }
-
-            ExecuteChecker executeChecker=new ExecuteChecker();
 
             if(accessorWrapper.canExecute(accessor)) {
                 try {
@@ -103,8 +120,13 @@ public class UiAccessorCollector {
                             if((concreteWindowHash!=null)&&(!window.toString().equals(concreteWindowHash))){
                                 return; //например, если нужно выполнить операцию в конкретной вкладке браузера
                             }
-                            uiOperation.doOperation(window);
-                            executeChecker.executed=true;
+                            if((executeOnce)&&(BooleanUtils.isTrue(executeChecker.executed))){
+                                return;
+                            }else{
+                                uiOperation.doOperation(window);
+                                executeChecker.executed=true;
+                            }
+
                         } catch (UIDetachedException exception) {
                             accessorsToRemove.add(accessor);
 
@@ -121,10 +143,6 @@ public class UiAccessorCollector {
             }
             else{
                 removeAccessor(targetUser,targetScreen,accessorsToRemove);
-            }
-
-            if((executeOnce)&&(BooleanUtils.isTrue(executeChecker.executed))){
-                return;
             }
 
         }

@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationEvent;
  */
 public abstract class AbstractNotificationEvent extends ApplicationEvent {
 
+    public abstract String getDefaultIdentifierName();
 
     private Notification notification;
 
@@ -23,4 +24,5 @@ public abstract class AbstractNotificationEvent extends ApplicationEvent {
     public void setNotification(Notification notification) {
         this.notification = notification;
     }
+
 }

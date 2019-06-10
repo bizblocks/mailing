@@ -1,10 +1,7 @@
 package com.lokoproject.mailing.web.notification;
 
 import com.haulmont.bali.util.ParamsMap;
-import com.haulmont.cuba.gui.components.AbstractWindow;
-import com.haulmont.cuba.gui.components.Frame;
-import com.haulmont.cuba.gui.components.Label;
-import com.haulmont.cuba.gui.components.Table;
+import com.haulmont.cuba.gui.components.*;
 import com.haulmont.cuba.gui.data.CollectionDatasource;
 import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
 import com.haulmont.cuba.security.global.UserSession;
@@ -25,6 +22,9 @@ public class UserNotification extends AbstractWindow {
 
     @Inject
     private UserSession userSession;
+
+    @Inject
+    private TabSheet tabSheet;
 
     @Inject
     private Frame frame;
@@ -52,7 +52,16 @@ public class UserNotification extends AbstractWindow {
 
         uiAccessorCollector.addAccessor(this,"userNotification",userSession.getUser());
 
+        VBoxLayout layout = componentsFactory.createComponent(VBoxLayout.class);
+        layout.setHeight("100%");
+        layout.setWidth("100%");
+        layout.setId("mailingTab");
+        layout.setMargin(true,false,false,false);
+        TabSheet.Tab tab = tabSheet.addTab("mailingTab", layout);
+        tab.setCaption(getMessage("my_mailings"));
 
+        Component personalMailingBrowse=openFrame(null,"mailing$Mailing.browse",ParamsMap.of("idForPersonalSettings",userSession.getUser().getId()));
+        layout.add(personalMailingBrowse);
 
         tableNotificationsDs.addItemChangeListener(event->{
             frame.removeAll();

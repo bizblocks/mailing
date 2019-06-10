@@ -1,6 +1,7 @@
 package com.lokoproject.mailing.service;
 
 
+import com.haulmont.cuba.core.entity.StandardEntity;
 import com.haulmont.cuba.security.entity.User;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.entity.Notification;
@@ -14,7 +15,11 @@ public interface NotificationService {
 
     void updateMailing(Mailing mailing);
 
+    void sendSimpleNotification(StandardEntity target, String content, String header, String channelName);
+
     void addNotification(Object object);
+
+    void addNotification(Mailing mailing, Object object);
 
     void processMailings();
 
@@ -29,4 +34,6 @@ public interface NotificationService {
     List<Notification> getActualUserNotifications(User user, String notificationAgent);
 
     void sendNotificationAgain(Notification notification,boolean consolidate);
+
+    void onRemoveMailing(Mailing item);
 }

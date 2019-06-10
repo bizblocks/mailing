@@ -86,7 +86,7 @@ public class Notificationbell extends AbstractWindow {
 
     }
 
-    private void shakeBell() {
+    public void shakeBell() {
         JavaScript.getCurrent().execute("var el = document.querySelector('.bell_notification');\n" +
                 "    el.classList.remove('notify');\n" +
                 "    el.offsetWidth = el.offsetWidth;\n" +

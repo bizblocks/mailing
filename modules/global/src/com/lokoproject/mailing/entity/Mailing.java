@@ -2,11 +2,20 @@ package com.lokoproject.mailing.entity;
 
 import javax.persistence.*;
 
+import com.haulmont.chile.core.annotations.MetaProperty;
 import com.haulmont.cuba.core.entity.StandardEntity;
 import com.lokoproject.mailing.conditions.Condition;
 import com.haulmont.cuba.core.entity.annotation.Listeners;
 import com.lokoproject.mailing.conditions.OrCondition;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.UUID;
+import com.haulmont.chile.core.annotations.NamePattern;
+
+@NamePattern("%s|name")
 @Listeners("mailing_MailingEntityListener")
 @Table(name = "MAILING_MAILING")
 @Entity(name = "mailing$Mailing")
@@ -17,7 +26,26 @@ public class Mailing extends StandardEntity {
     @JoinColumn(name = "MAILING_TARGET_SCRIPT_ID")
     protected GroovyScript mailingTargetScript;
 
+
+
+
+    @Column(name = "ENTITY_TYPE_FOR_PERSONAL_SETTINGS")
+    protected String entityTypeForPersonalSettings;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORIGIN_MAILING_ID")
+    protected Mailing originMailing;
+
+
+    @Column(name = "ENTITY_ID_FOR_PERSONAL_SETTINGS")
+    protected UUID entityIdForPersonalSettings;
+
+    @Column(name = "USE_DEFAULT_MAILING")
+    @PersonalizedOnly
+    protected Boolean useDefaultMailing;
+
     @Column(name = "ACTIVATED")
+    @Personalized
     protected Boolean activated=true;
 
     @Column(name = "STRING_ID")
@@ -25,10 +53,12 @@ public class Mailing extends StandardEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CONSOLIDATION_GROOVY_ID")
+    @Personalized
     protected GroovyScript consolidationGroovy;
 
     @Lob
     @Column(name = "CONSOLIDATION_JSON")
+    @Personalized
     protected String consolidationConditionJson;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,13 +78,55 @@ public class Mailing extends StandardEntity {
     protected GroovyScript finalDecorationScript;
 
     @Column(name = "MAILING_PERFORMERS", length = 1000)
+    @Personalized
     protected String mailingPerformers;
 
     @Column(name = "NAME")
     protected String name;
 
-    @Transient
-    private OrCondition consolidationCondition=new OrCondition();
+
+
+
+
+
+
+
+    public void setUseDefaultMailing(Boolean useDefaultMailing) {
+        this.useDefaultMailing = useDefaultMailing;
+    }
+
+    public Boolean getUseDefaultMailing() {
+        return useDefaultMailing;
+    }
+
+
+    public void setEntityIdForPersonalSettings(UUID entityIdForPersonalSettings) {
+        this.entityIdForPersonalSettings = entityIdForPersonalSettings;
+    }
+
+    public UUID getEntityIdForPersonalSettings() {
+        return entityIdForPersonalSettings;
+    }
+
+
+    public void setEntityTypeForPersonalSettings(String entityTypeForPersonalSettings) {
+        this.entityTypeForPersonalSettings = entityTypeForPersonalSettings;
+    }
+
+    public String getEntityTypeForPersonalSettings() {
+        return entityTypeForPersonalSettings;
+    }
+
+
+    public void setOriginMailing(Mailing originMailing) {
+        this.originMailing = originMailing;
+    }
+
+    public Mailing getOriginMailing() {
+        return originMailing;
+    }
+
+
 
     public void setActivated(Boolean activated) {
         this.activated = activated;
@@ -151,11 +223,13 @@ public class Mailing extends StandardEntity {
     }
 
 
-    public Condition getConsolidationCondition() {
-        return consolidationCondition;
-    }
 
-    public void setConsolidationCondition(OrCondition consolidationCondition) {
-        this.consolidationCondition = consolidationCondition;
-    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface Personalized{}
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface PersonalizedOnly{}
 }

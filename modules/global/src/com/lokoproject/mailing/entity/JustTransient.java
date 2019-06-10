@@ -16,7 +16,31 @@ public class JustTransient extends BaseUuidEntity {
     protected JustTransient parent;
 
     @MetaProperty
+    protected String valueTwo;
+
+    @MetaProperty
     protected String name;
+
+    @MetaProperty
+    protected String valueOne;
+
+    public void setValueTwo(String valueTwo) {
+        this.valueTwo = valueTwo;
+    }
+
+    public String getValueTwo() {
+        return valueTwo;
+    }
+
+
+    public void setValueOne(String valueOne) {
+        this.valueOne = valueOne;
+    }
+
+    public String getValueOne() {
+        return valueOne;
+    }
+
 
     public void setName(String name) {
         this.name = name;

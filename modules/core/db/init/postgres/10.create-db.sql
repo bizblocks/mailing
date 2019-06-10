@@ -10,6 +10,12 @@ create table MAILING_MAILING (
     DELETED_BY varchar(50),
     --
     MAILING_TARGET_SCRIPT_ID uuid,
+    ALLOW_PERSONAL_SETTINGS_BY_USER boolean,
+    ALLOW_PERSONAL_SETTINGS_BY_ADMIN boolean,
+    ENTITY_TYPE_FOR_PERSONAL_SETTINGS varchar(255),
+    ORIGIN_MAILING_ID uuid,
+    ENTITY_ID_FOR_PERSONAL_SETTINGS uuid,
+    USE_DEFAULT_MAILING boolean,
     ACTIVATED boolean,
     STRING_ID varchar(255),
     CONSOLIDATION_GROOVY_ID uuid,
@@ -56,11 +62,13 @@ create table MAILING_NOTIFICATION (
     DELETE_TS timestamp,
     DELETED_BY varchar(50),
     --
-    TARGET_ID uuid,
+    TARGET_ENTITY_UUID uuid,
+    NOTIFICATION_CHANNELS text,
     TEMPLATE_JSON text,
     SEND_DATE date,
     STAGE integer,
     MAILING_ID uuid,
+    TARGET_ENTITY_TYPE varchar(255),
     --
     primary key (ID)
 )^
@@ -101,3 +109,27 @@ create table MAILING_MAILING_IDENTIFIER (
     primary key (ID)
 )^
 -- end MAILING_MAILING_IDENTIFIER
+
+-- begin MAILING_WAY_TO_GET_MAILING_IDENTIFIER
+create table MAILING_WAY_TO_GET_MAILING_IDENTIFIER (
+    ID uuid,
+    VERSION integer not null,
+    CREATE_TS timestamp,
+    CREATED_BY varchar(50),
+    UPDATE_TS timestamp,
+    UPDATED_BY varchar(50),
+    DELETE_TS timestamp,
+    DELETED_BY varchar(50),
+    --
+    ENTITY_TYPE varchar(255),
+    IS_GENERAL boolean,
+    ENTITY_ID varchar(255),
+    WAY_TO_GET_IDENTIFER_FROM_ENTITY_FIELDS varchar(255),
+    NOTIFICATION_CHANEL varchar(255),
+    MAILING_TO_REQUEST_IDENTIFER_ID uuid,
+    FIELD_USED_AS_EXTERNAL_ID varchar(255),
+    MAILING_IDENTIFIER text,
+    --
+    primary key (ID)
+)^
+-- end MAILING_WAY_TO_GET_MAILING_IDENTIFIER

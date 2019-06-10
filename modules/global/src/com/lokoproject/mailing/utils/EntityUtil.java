@@ -8,6 +8,7 @@ import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.entity.StandardEntity;
 import com.haulmont.cuba.core.global.AppBeans;
 import com.haulmont.cuba.core.global.Metadata;
+import com.haulmont.cuba.core.global.View;
 
 import javax.persistence.Transient;
 import java.lang.reflect.AnnotatedElement;
@@ -106,5 +107,9 @@ public class EntityUtil {
             metadata= AppBeans.get(Metadata.class);
         }
         return metadata;
+    }
+
+    public static View createView(String entityType, String pointSeparatedFieldNameString) {
+        return null;
     }
 }

@@ -1,6 +1,15 @@
 package com.lokoproject.mailing.utils;
 
 import com.lokoproject.mailing.notification.template.element.*;
+import com.lokoproject.mailing.notification.template.element.List;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author Antonlomako. created on 29.12.2018.
@@ -194,5 +203,30 @@ public class HtmlTemplateHelper {
 
     public static String buildList(List list) {
         return buildList(null,list).toString();
+    }
+
+    public static ByteArrayOutputStream createImageByHtml(String html,int width,int height)  {
+        JLabel label = new JLabel(html);
+        label.setSize(width, height);
+        label.setBackground(Color.WHITE);
+
+        BufferedImage image = new BufferedImage(
+                label.getWidth(), label.getHeight(),
+                BufferedImage.TYPE_INT_ARGB);
+
+        {
+            Graphics g = image.getGraphics();
+            g.setColor(Color.BLACK);
+            label.paint(g);
+            g.dispose();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, "jpg", baos);
+        } catch (IOException e) {
+            return new ByteArrayOutputStream();
+        }
+        return baos;
     }
 }

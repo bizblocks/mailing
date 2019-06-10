@@ -8,5 +8,6 @@
         <class>com.lokoproject.mailing.entity.Notification</class>
         <class>com.lokoproject.mailing.entity.NotificationStageLog</class>
         <class>com.lokoproject.mailing.entity.MailingIdentifier</class>
+        <class>com.lokoproject.mailing.entity.WayToGetMailingIdentifier</class>
     </persistence-unit>
 </persistence>

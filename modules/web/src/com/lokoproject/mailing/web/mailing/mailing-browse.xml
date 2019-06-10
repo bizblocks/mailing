@@ -5,7 +5,7 @@
   ~ Use is subject to license terms.
   -->
 <window xmlns="http://schemas.haulmont.com/cuba/window.xsd"
-        caption="msg://caption"
+        caption="msg://mailing_browse"
         class="com.lokoproject.mailing.web.mailing.MailingBrowse"
         focusComponent="table"
         lookupComponent="table"
@@ -18,7 +18,8 @@
                               class="com.lokoproject.mailing.entity.Mailing"
                               view="mailing-full">
             <query>
-                <![CDATA[select e from mailing$Mailing e]]>
+                <![CDATA[select e from mailing$Mailing e 
+where e.entityIdForPersonalSettings =:custom$idForPersonalSettings]]>
             </query>
         </collectionDatasource>
     </dsContext>
@@ -90,6 +91,7 @@
                             <field property="objectFilterScript"/>
                             <field property="mailingTargetScript"/>
                             <field property="notificationBuildScript"/>
+                            <field property="useDefaultMailing"/>
                         </column>
                     </fieldGroup>
                 </scrollBox>

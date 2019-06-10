@@ -2,6 +2,8 @@ package com.lokoproject.mailing.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haulmont.bali.util.ParamsMap;
+import com.haulmont.cuba.core.entity.Entity;
+import com.haulmont.cuba.core.entity.StandardEntity;
 import com.haulmont.cuba.core.entity.contracts.Id;
 import com.haulmont.cuba.core.global.*;
 import com.haulmont.cuba.security.app.Authenticated;
@@ -12,8 +14,10 @@ import com.lokoproject.mailing.entity.NotificationStageLog;
 import com.lokoproject.mailing.notification.event.AbstractNotificationEvent;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.entity.Notification;
+import com.lokoproject.mailing.notification.template.TemplateBuilder;
 import com.lokoproject.mailing.notification.template.TemplateWrapper;
 import com.lokoproject.mailing.utils.EntityUtil;
+import com.lokoproject.mailing.utils.ReflectionHelper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -42,20 +46,40 @@ public class NotificationServiceBean implements NotificationService {
     private DaoService daoService;
 
     @Inject
+    private MailingService mailingService;
+
+    @Inject
     protected Scripting scripting;
 
 
-    private Map<Mailing,Map<User,Notification>> mailingMap=new ConcurrentHashMap<>();
-    private Map<Mailing,Map<User,Date>> lastSendDateMap=new ConcurrentHashMap<>();
+    private Map<Mailing,Map<UUID,Notification>> mailingMap=new ConcurrentHashMap<>();
+    private Map<Mailing,Map<UUID,Date>> lastSendDateMap=new ConcurrentHashMap<>();
     private Map<String,Notification> actualNotificationMap=new ConcurrentHashMap<>();
     private Collection<Mailing> allMailings;
 
     @Override
     public void updateMailing(Mailing mailing){
         if(getAllMailings()==null) return;
+        if(mailing.getEntityTypeForPersonalSettings()!=null) return;
 
         getAllMailings().remove(mailing);
         getAllMailings().add(mailing);
+    }
+
+    @Override
+    public void onRemoveMailing(Mailing mailing){
+        if(getAllMailings()==null) return;
+
+        if(mailing.getEntityTypeForPersonalSettings()==null)getAllMailings().remove(mailing);
+        mailingService.onRemoveMailing(mailing);
+    }
+
+    @Override
+    public void sendSimpleNotification(StandardEntity target, String content, String header, String channelName){
+        Notification notification=createNotification(target,null,null);
+        TemplateBuilder.MainTemplateBuilder builder=TemplateBuilder.createBuilder(header,content,"smile");
+        notification.setTemplate((TemplateWrapper) builder.build());
+        dispatchNotification(notification,Arrays.asList(ReflectionHelper.getNotificationEvent(channelName)));
     }
 
     @Override
@@ -63,14 +87,19 @@ public class NotificationServiceBean implements NotificationService {
 
         Collection<Mailing> mailings=getAllMailings();
         mailings.forEach(mailing->{
-            if(mailing.getActivated()){
-                if(isAcceptableForObject(mailing,object)){
-                    getUsersToNotify(mailing,object).forEach(user->{
-                        addObjectToNotification(user,mailing,object);
-                    });
-                }
-            }
+            addNotification(mailing,object);
         });
+    }
+
+    @Override
+    public void addNotification(Mailing mailing,Object object){
+        if(mailing.getActivated()){
+            if(isAcceptableForObject(mailing,object)){
+                getUsersToNotify(mailing,object).forEach(user->{
+                    addObjectToNotification(user,mailing,object);
+                });
+            }
+        }
     }
 
     @Override
@@ -94,22 +123,23 @@ public class NotificationServiceBean implements NotificationService {
 
     private boolean canSendNow(Notification notification, Date now) {
         Mailing mailing= getMailingOfNotification(notification);
-        if((mailing.getConsolidationCondition()==null)&&(mailing.getConsolidationGroovy()==null)) return true;
+        assert mailing != null;
+        if((mailing.getConsolidationConditionJson()==null)&&(mailing.getConsolidationGroovy()==null)) return true;
 
         Date lastSendDate=null;
         lastSendDateMap.putIfAbsent( getMailingOfNotification(notification),new HashMap<>());
-        Map<User,Date> userDateMap=lastSendDateMap.get( getMailingOfNotification(notification));
+        Map<UUID,Date> userDateMap=lastSendDateMap.get( getMailingOfNotification(notification));
         assert (userDateMap!=null);
 
-        lastSendDate=userDateMap.get(notification.getTarget());
+        lastSendDate=userDateMap.get(notification.getTargetEntityUuid());
         if(lastSendDate==null){
             lastSendDate=now;   //чтобы при запуске системы сразу накапливаемые уведомления не отправлялись
-            userDateMap.put(notification.getTarget(),now);
+            userDateMap.put(notification.getTargetEntityUuid(),now);
         }
 
 
 
-        if(mailing.getConsolidationCondition()!=null){
+        if(mailing.getConsolidationConditionJson()!=null){
 
             try {
                 return mailing.getConsolidationCondition().check(
@@ -140,9 +170,9 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public Collection<Mailing> loadAllMailings() {
         LoadContext<Mailing> loadContext = LoadContext.create(Mailing.class)
-                .setQuery(LoadContext.createQuery("select m from mailing$Mailing m") )
+                .setQuery(LoadContext.createQuery("select m from mailing$Mailing m where m.entityTypeForPersonalSettings is null") )
                 .setView("mailing-full");
-        ;
+
         allMailings= dataManager.loadList(loadContext);
         return new CopyOnWriteArrayList<>(allMailings);
     }
@@ -186,16 +216,16 @@ public class NotificationServiceBean implements NotificationService {
 
 
 
-    private void addObjectToNotification(User user, Mailing mailing, Object object) {
-        Map<User,Notification> userNotificationMap=mailingMap.get(mailing);
+    private void addObjectToNotification(StandardEntity entity, Mailing mailing, Object object) {
+        Map<UUID,Notification> userNotificationMap=mailingMap.get(mailing);
         if(userNotificationMap==null){
             userNotificationMap=new ConcurrentHashMap<>();
             mailingMap.put(mailing,userNotificationMap);
         }
-        Notification notification=userNotificationMap.get(user);
+        Notification notification=userNotificationMap.get(entity.getId());
         if(notification==null){
-            notification=createNotification(user,mailing,object);
-            userNotificationMap.put(user,notification);
+            notification=createNotification(entity,mailing,object);
+            userNotificationMap.put(entity.getId(),notification);
         }
         else{
             notification.getObjects().add(object);
@@ -203,16 +233,18 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     private void updateNotificationInMap(Notification notification){
-        Map<User,Notification> userNotificationMap=mailingMap.get( getMailingOfNotification(notification));
-        if((userNotificationMap==null)||(userNotificationMap.get(notification.getTarget())==null)) return;
-        userNotificationMap.put(notification.getTarget(),notification);
+        Mailing mailing=getMailingOfNotification(notification);
+        if(mailing==null) return;
+        Map<UUID,Notification> userNotificationMap=mailingMap.get(mailing );
+        if((userNotificationMap==null)||(userNotificationMap.get(notification.getTargetEntityUuid())==null)) return;
+        userNotificationMap.put(notification.getTargetEntityUuid(),notification);
     }
 
-    private Notification createNotification(User user, Mailing mailing, Object object) {
+    private Notification createNotification(StandardEntity entity, Mailing mailing, Object object) {
         Notification notification=metadata.create(Notification.class);
         notification.setMailing(mailing);
         notification.getObjects().add(object);
-        notification.setTarget(user);
+        notification.setTarget(entity);
         notification.setStage(NotificationStage.CONSOLIDATION);
         notification=dataManager.commit(notification,"notification-full");
         makeRecordOfNotificationStateChange(notification,NotificationStage.CONSOLIDATION);
@@ -222,7 +254,7 @@ public class NotificationServiceBean implements NotificationService {
 
     private void removeNotification(Notification item){
         try{
-            mailingMap.get(item.getMailing()).remove(item.getTarget());
+            mailingMap.get(item.getMailing()).remove(item.getTargetEntityUuid());
         }
         catch (Exception ignored){
 
@@ -235,14 +267,14 @@ public class NotificationServiceBean implements NotificationService {
 
 
 
-    Collection<User> getUsersToNotify(Mailing mailing,Object object) {
+    Collection<StandardEntity> getUsersToNotify(Mailing mailing,Object object) {
         if((mailing.getMailingTargetScript()==null)||(StringUtils.isEmpty(mailing.getMailingTargetScript().getScript()))) return Collections.emptyList();
 
         try {
             Map<String, Object> binding = new HashMap<>();
             binding.put("object", object);
 
-            Collection<User> result= scripting.evaluateGroovy(mailing.getMailingTargetScript().getScript(), binding);
+            Collection<StandardEntity> result= scripting.evaluateGroovy(mailing.getMailingTargetScript().getScript(), binding);
             return result;
 
         } catch (Exception e) {
@@ -282,15 +314,22 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     private void dispatchNotification(Notification notification){
-        try {
-
-            List<AbstractNotificationEvent> notificationEvents=new ArrayList<>();
-            for(String performer:  getMailingOfNotification(notification).getMailingPerformers().split(";")){
-                try{
-                    notificationEvents.add(getNotificationEvent(performer));
-                }
-                catch (Exception ignored){}
+        List<AbstractNotificationEvent> notificationEvents=new ArrayList<>();
+        Mailing mailing=getMailingOfNotification(notification);
+        assert mailing != null;
+        for(String performer:  mailing.getMailingPerformers().split(";")){
+            try{
+                notificationEvents.add(getNotificationEvent(performer));
             }
+            catch (Exception e){
+                mailingTypeBlackList.add(performer);
+            }
+        }
+        dispatchNotification(notification,notificationEvents);
+    }
+
+    private void dispatchNotification(Notification notification,List<AbstractNotificationEvent> notificationEvents){
+        try {
             if(notificationEvents.size()==0) return;
 
             notification.setStage(NotificationStage.AFTER_CONSOLIDATION);
@@ -300,7 +339,18 @@ public class NotificationServiceBean implements NotificationService {
             }
 
             makeRecordOfNotificationStateChange(notification,NotificationStage.AFTER_CONSOLIDATION);
+
+            StringBuilder channelBuilder=new StringBuilder();
+            for(int i=0;i<notificationEvents.size();i++){
+                channelBuilder.append(notificationEvents.get(i).getClass().getSimpleName());
+                if(i<notificationEvents.size()-1) channelBuilder.append("; ");
+            }
+            notification.setNotificationChannels(channelBuilder.toString());
+
             updateNotificationInMap(dataManager.commit(notification,"notification-full"));
+            if(notification.getMailing()!=null){
+                mailingService.createPersonalSettings(notification.getTargetEntityUuid(),notification.getTargetEntityType(),notification.getMailing());
+            }
 
             notificationEvents.forEach(notificationEvent->{
                 notificationEvent.setNotification(notification);
@@ -308,7 +358,7 @@ public class NotificationServiceBean implements NotificationService {
             });
 
             lastSendDateMap.putIfAbsent( getMailingOfNotification(notification),new HashMap<>());
-            lastSendDateMap.get( getMailingOfNotification(notification)).put(notification.getTarget(),notification.getSendDate());
+            lastSendDateMap.get( getMailingOfNotification(notification)).put(notification.getTargetEntityUuid(),notification.getSendDate());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -320,17 +370,19 @@ public class NotificationServiceBean implements NotificationService {
         if(notification.getMailing()==null) return null;
         for(Mailing mailing:mailingMap.keySet()){
             if(mailing.equals( notification.getMailing())){
-                return mailing;
+                return mailingService.getPersonalizedMailing(mailing,notification.getTargetEntityUuid(),notification.getTargetEntityType());
             }
         }
         return notification.getMailing();
     }
 
+
+
     private Map<String,Class> mailingEventsMap=new HashMap<>();
     private List<String> mailingTypeBlackList=new ArrayList<>();
 
     private AbstractNotificationEvent getNotificationEvent(String mailingType ) throws Exception {
-        if (mailingTypeBlackList.contains(mailingType)) return null;
+        //if (mailingTypeBlackList.contains(mailingType)) return null;
 
         if (mailingEventsMap.get(mailingType) != null) {
             return (AbstractNotificationEvent) mailingEventsMap.get(mailingType).newInstance();
@@ -358,8 +410,14 @@ public class NotificationServiceBean implements NotificationService {
         List<Notification> result=new ArrayList<>();
         actualNotificationMap.values().forEach(notification -> {
             if(notification.getStage().equals(NotificationStage.AFTER_CONSOLIDATION)||(notification.getStage().equals(NotificationStage.PROCESSED))){
-                if(notification.getTarget().equals(user)){
-                    if( getMailingOfNotification(notification).getMailingPerformers().contains(notificationAgent)){
+                if(notification.getTargetEntityUuid().equals(user.getId())){
+                    Mailing mailing=getMailingOfNotification(notification);
+                    if(mailing==null){
+                        if(notification.getNotificationChannels().contains(notificationAgent)){
+                            result.add(notification);
+                        }
+                    }
+                    else if( mailing.getMailingPerformers().contains(notificationAgent)){
                         result.add(notification);
                     }
                 }
@@ -375,7 +433,7 @@ public class NotificationServiceBean implements NotificationService {
     public void sendNotificationAgain(Notification notification, boolean consolidate) {
         //// TODO: 17.03.2019 придумать, как использовать консолидацию для отправленног уведомления
         Notification notificationCopy=metadata.create(Notification.class);
-        notificationCopy = (Notification) EntityUtil.createEntityCopy(notification,notificationCopy,false,Arrays.asList("id"));
+        notificationCopy = (Notification) EntityUtil.createEntityCopy(notification,notificationCopy,false, Collections.singletonList("id"));
         notificationCopy.setTemplate(notification.getTemplate());
         notificationCopy.setStage(NotificationStage.AFTER_CONSOLIDATION);
         notificationCopy=dataManager.commit(notificationCopy,"notification-full");

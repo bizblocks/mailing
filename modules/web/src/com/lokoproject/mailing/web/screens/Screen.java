@@ -1,36 +1,69 @@
 package com.lokoproject.mailing.web.screens;
 
 import com.haulmont.bali.util.ParamsMap;
+import com.haulmont.cuba.core.global.Metadata;
+import com.haulmont.cuba.core.global.View;
 import com.haulmont.cuba.gui.WindowManager;
-import com.haulmont.cuba.gui.components.AbstractWindow;
-import com.haulmont.cuba.gui.components.TextField;
+import com.haulmont.cuba.gui.components.*;
+import com.haulmont.cuba.gui.data.CollectionDatasource;
+import com.haulmont.cuba.gui.data.DsBuilder;
+import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
+import com.haulmont.cuba.security.entity.User;
 import com.haulmont.cuba.security.global.UserSession;
-import com.lokoproject.mailing.conditions.Condition;
-import com.lokoproject.mailing.conditions.ConditionException;
-import com.lokoproject.mailing.conditions.OrCondition;
-import com.lokoproject.mailing.conditions.schedule.DayOfWeek;
-import com.lokoproject.mailing.conditions.schedule.HourSchedule;
-import com.lokoproject.mailing.notification.template.TemplateBuilder;
+import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.service.BotService;
+import com.lokoproject.mailing.service.DaoService;
+import com.lokoproject.mailing.service.IdentifierService;
 import com.lokoproject.mailing.service.NotificationService;
+import com.lokoproject.mailing.utils.HtmlTemplateHelper;
 import com.lokoproject.mailing.web.beens.notification.CubaWebClientNotificationPerformer;
+import com.lokoproject.mailing.web.beens.ui.UiAccessorCollector;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.util.*;
 
 public class Screen extends AbstractWindow {
 
     @Inject
-    private TextField textField1;
+    private TextField textField;
 
     @Inject
-    private TextField textField2;
+    private LookupField typeField;
 
     @Inject
-    private TextField textField3;
+    private LookupPickerField entityField;
+
+    @Inject
+    private LookupField typeSwitchField;
+
+    @Inject
+    private TextField mapKeyField;
+
+    @Inject
+    private VBoxLayout resultVbox;
+
+    @Inject
+    private LookupField simpleTypeField;
+
+    @Inject
+    private HBoxLayout entityHbox;
+
+    @Inject
+    private HBoxLayout simpleTypeHbox;
+
+    @Inject
+    private LookupPickerField mailingField;
+
 
     @Inject
     private NotificationService notificationService;
+
+    @Inject
+    private TextField messageContentTextField;
+
+    @Inject
+    private TextField userNameTextField;
 
     @Inject
     private CubaWebClientNotificationPerformer notificationProcessor;
@@ -39,76 +72,222 @@ public class Screen extends AbstractWindow {
     private BotService botService;
 
     @Inject
+    private TextArea htmlTextField;
+
+    @Inject
+    private DaoService daoService;
+
+    @Inject
+    private IdentifierService identifierService;
+
+    @Inject
+    private UiAccessorCollector uiAccessorCollector;
+
+    @Inject
+    private CubaWebClientNotificationPerformer notificationPerformer;
+
+    @Inject
     private UserSession userSession;
 
-    private Condition condition;
+    @Inject
+    private Metadata metadata;
 
-    public void onStrClick() {
-
-        if(condition==null){
-            OrCondition orCondition=new OrCondition();
-            HourSchedule hourSchedule=new HourSchedule();
-            DayOfWeek dayOfWeek=new DayOfWeek();
-
-            orCondition.addChild(hourSchedule);
-            orCondition.addChild(dayOfWeek);
-
-            condition=orCondition;
-        }
+    @Inject
+    private ComponentsFactory componentsFactory;
 
 
-        Consolidation consolidation= (Consolidation) openWindow("consolidation", WindowManager.OpenType.DIALOG,ParamsMap.of("condition",condition));
-        consolidation.addCloseListener(event->{
-            setCondition(consolidation.getCondition());
-            Calendar calendar=Calendar.getInstance();
-            calendar.add(Calendar.DAY_OF_YEAR,-1);
-            try {
-                showNotification(String.valueOf(condition.check(ParamsMap.of("now",new Date(),"lastSendDate",calendar.getTime(),"objectsValue",3))));
-            } catch (ConditionException e) {
-                e.printStackTrace();
+    private Object objectToAddToNotification;
+
+    @Override
+    public void init(Map<String,Object> params){
+        initEntityField();
+        initSimpleTypeField();
+        initTypeSwitchField();
+    }
+
+    private void initTypeSwitchField() {
+        typeSwitchField.setOptionsList(Arrays.asList("simple","entity"));
+        typeSwitchField.setNullOptionVisible(false);
+        typeSwitchField.setValue("simple");
+        entityHbox.setVisible(false);
+        typeSwitchField.addValueChangeListener(event->{
+            if("simple".equals(event.getValue())){
+                entityHbox.setVisible(false);
+                simpleTypeHbox.setVisible(true);
+            }
+            else{
+                entityHbox.setVisible(true);
+                simpleTypeHbox.setVisible(false);
             }
         });
     }
 
-    public void onIntClick() {
-//        notificationService.addNotification(Integer.valueOf(textField1.getValue()));
-        List<Map<String,String>> data=new ArrayList<>();
+    private void initSimpleTypeField() {
+        simpleTypeField.setOptionsList(Arrays.asList("boolean","integer","double","string"));
+        simpleTypeField.setNullOptionVisible(false);
+        simpleTypeField.setValue("string");
+    }
 
-        for(int i=0;i<5;i++){
-            Map<String,String> row=new HashMap<>();
-            for(int j=0;j<3;j++){
-                row.put("col"+String.valueOf(j),String.valueOf(j+i));
+    private void initEntityField() {
+        List<String> metaclassList=new ArrayList<>();
+        metadata.getSession().getClasses().forEach(item->{
+            metaclassList.add(item.getName());
+        });
+        typeField.setOptionsList(metaclassList);
+        typeField.setNullOptionVisible(false);
+        typeField.addValueChangeListener(event->{
+            if(event.getValue()==null) return;
+            CollectionDatasource ds = new DsBuilder(getDsContext())
+                    .setJavaClass(metadata.getClass((String)event.getValue()).getJavaClass())
+                    .setViewName(View.LOCAL)
+                    .setId("entityDs")
+                    .buildCollectionDatasource();
+            ds.refresh();
+            entityField.setOptionsDatasource(ds);
+            entityField.setEnabled(true);
+        });
+
+        entityField.setEnabled(false);
+    }
+
+    public void onShakeBellClick() {
+        this.uiAccessorCollector.executeFor(this.userSession.getUser(), "notification", (bellWindow) -> {
+            if(bellWindow instanceof Notificationbell) {
+                Notificationbell bell = (Notificationbell)bellWindow;
+                bell.shakeBell();
             }
-            data.add(row);
+
+        });
+    }
+
+    public void onShowDesctopNotificationClick() {
+        this.notificationPerformer.showDesktopNotificationToUser(this.userSession.getUser().getLogin(), "hello", "hello content", "", "", (CubaWebClientNotificationPerformer.NotificationClickListener)null);
+    }
+
+    public void onStartBotClick() {
+        this.botService.startBot();
+    }
+
+    public void onSendMsgClick() {
+        User user = this.daoService.getUserByLogin(this.userNameTextField.getRawValue());
+        this.botService.sendMessageToUser(user, this.messageContentTextField.getRawValue());
+    }
+
+    public void onSendWebMsgClick() {
+        User user = this.daoService.getUserByLogin(this.userNameTextField.getRawValue());
+        this.notificationService.sendSimpleNotification(user, "hello content", "header", "CubaWebClient");
+    }
+
+    public void onHtmlButtonClick() throws IOException {
+        User user = this.daoService.getUserByLogin(this.userNameTextField.getRawValue());
+        this.botService.sendImageToUser(user, HtmlTemplateHelper.createImageByHtml(this.htmlTextField.getRawValue(), 1024, 768).toByteArray(), "img test");
+    }
+
+    public void onAddToMapClick() {
+        if(mapKeyField.getValue()==null){
+            showNotification(getMessage("set_key"),NotificationType.WARNING);
+            return;
         }
-        TemplateBuilder.MainTemplateBuilder builder=TemplateBuilder.createBuilder("тема","описание","smile");
-
-        builder.withChild(builder.createTableBuilder(data)
-                        .withColumns(Arrays.asList("col0","col1","col2"))
-                        .build())
-                .withChild(builder.createList(Arrays.asList("col0","col1","col2")))
-                .withChild(builder.createText("some text"));
-
-        openWindow("notificationTemplateProcessor", WindowManager.OpenType.DIALOG, ParamsMap.of("notificationTemplate",builder.build()));
+        Object object=getObjectToAdd();
+        if(object==null){
+            showNotification(getMessage("set_object"),NotificationType.WARNING);
+            return;
+        }
+        if(!(objectToAddToNotification instanceof Map)){
+            objectToAddToNotification=new HashMap<>();
+        }
+        Map map= (Map) objectToAddToNotification;
+        map.put(mapKeyField.getRawValue(),object);
+        updateResultVbox();
     }
 
-    public void onSClick() {
-        notificationService.addNotification(Arrays.asList(textField1.getValue(), textField2.getRawValue(), textField3.getRawValue()));
+    private void updateResultVbox() {
+        resultVbox.removeAll();
+        if(objectToAddToNotification==null) return;
+        if(objectToAddToNotification instanceof Map){
+            Map map= (Map) objectToAddToNotification;
+            map.forEach((key,value)->{
+                HBoxLayout hbox=componentsFactory.createComponent(HBoxLayout.class);
+                Label keyLabel=componentsFactory.createComponent(Label.class);
+                Label valueLabel=componentsFactory.createComponent(Label.class);
+                Label spacer=componentsFactory.createComponent(Label.class);
+                spacer.setValue("   -   ");
+                hbox.add(keyLabel);
+                hbox.add(spacer);
+                hbox.add(valueLabel);
+                hbox.setSpacing(true);
+                keyLabel.setValue(key.toString());
+                valueLabel.setValue(value.toString());
+                resultVbox.add(hbox);
+            });
+        }
+        else if(objectToAddToNotification instanceof List){
+            List list= (List) objectToAddToNotification;
+            list.forEach(item->{
+                Label itemLabel=componentsFactory.createComponent(Label.class);
+                itemLabel.setValue(item.toString());
+                resultVbox.add(itemLabel);
+            });
+        }
+        else{
+            Label itemLabel=componentsFactory.createComponent(Label.class);
+            itemLabel.setValue(objectToAddToNotification.toString());
+            resultVbox.add(itemLabel);
+        }
     }
 
-    public void onIClick() {
-        notificationService.addNotification(Integer.valueOf(textField1.getValue()));
+    private Object getObjectToAdd() {
+        if("simple".equals(typeSwitchField.getValue())){
+            if("boolean".equals(simpleTypeField.getValue())){
+                return Boolean.valueOf(textField.getRawValue());
+            }
+            else if("integer".equals(simpleTypeField.getValue())){
+                return Integer.valueOf(textField.getRawValue());
+            }
+            else if("double".equals(simpleTypeField.getValue())){
+                return Double.valueOf(textField.getRawValue());
+            }
+            else if("string".equals(simpleTypeField.getValue())){
+                return textField.getRawValue();
+            }
+            else return null;
+        }
+        else{
+            return entityField.getValue();
+        }
+
     }
 
-    public void onBotClick() {
-        botService.startBot();
+    public void onAddToListClick() {
+        Object object=getObjectToAdd();
+        if(object==null){
+            showNotification(getMessage("set_object"),NotificationType.WARNING);
+            return;
+        }
+        if(!(objectToAddToNotification instanceof List)){
+            objectToAddToNotification=new ArrayList<>();
+        }
+        List list= (List) objectToAddToNotification;
+        list.add(object);
+        updateResultVbox();
     }
 
-    public Condition getCondition() {
-        return condition;
+    public void onAddAsIsClick() {
+        objectToAddToNotification=getObjectToAdd();
+        updateResultVbox();
     }
 
-    public void setCondition(Condition condition) {
-        this.condition = condition;
+    public void onAddNotificationClick() {
+        if(objectToAddToNotification==null){
+            showNotification(getMessage("set_object"),NotificationType.WARNING);
+            return;
+        }
+        if(mailingField.getValue()==null){
+            notificationService.addNotification(objectToAddToNotification);
+        }
+        else{
+            Mailing mailing=mailingField.getValue();
+            notificationService.addNotification(mailing,objectToAddToNotification);
+        }
     }
 }

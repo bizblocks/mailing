@@ -8,4 +8,9 @@ public class CubaWebClientNotificationEvent extends AbstractNotificationEvent im
     public CubaWebClientNotificationEvent(){
         super("cuba_web_client_notification_event");
     }
+
+    @Override
+    public String getDefaultIdentifierName() {
+        return "login";
+    }
 }

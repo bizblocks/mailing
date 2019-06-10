@@ -20,6 +20,10 @@
                        value="com.lokoproject.mailing.service.BotService"/>
                 <entry key="mailing_EventTransmitterService"
                        value="com.lokoproject.mailing.service.EventTransmitterService"/>
+                <entry key="mailing_MailingService"
+                       value="com.lokoproject.mailing.service.MailingService"/>
+                <entry key="mailing_ChannelStateService"
+                       value="com.lokoproject.mailing.service.ChannelStateService"/>
             </map>
         </property>
     </bean>

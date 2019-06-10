@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Date;
 import com.haulmont.cuba.core.entity.annotation.Listeners;
+import java.util.UUID;
 
 @Listeners("mailing_NotificationEntityListener")
 @Table(name = "MAILING_NOTIFICATION")
@@ -17,9 +18,13 @@ import com.haulmont.cuba.core.entity.annotation.Listeners;
 public class Notification extends StandardEntity {
     private static final long serialVersionUID = -3219109399113325120L;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TARGET_ID")
-    protected User target;
+
+    @Column(name = "TARGET_ENTITY_UUID")
+    protected UUID targetEntityUuid;
+
+    @Lob
+    @Column(name = "NOTIFICATION_CHANNELS")
+    protected String notificationChannels="";
 
     @Lob
     @Column(name = "TEMPLATE_JSON")
@@ -36,11 +41,47 @@ public class Notification extends StandardEntity {
     @JoinColumn(name = "MAILING_ID")
     protected Mailing mailing;
 
+    @Column(name = "TARGET_ENTITY_TYPE")
+    protected String targetEntityType;
+
     @Transient
     protected TemplateWrapper template;
 
     @Transient
     private Set<Object> objects=new HashSet<>();
+
+    public void setNotificationChannels(String notificationChannels) {
+        this.notificationChannels = notificationChannels;
+    }
+
+    public String getNotificationChannels() {
+        return notificationChannels;
+    }
+
+
+    public void setTarget(StandardEntity entity){
+        targetEntityUuid=entity.getUuid();
+        targetEntityType=entity.getMetaClass().getName();
+    }
+
+
+    public void setTargetEntityType(String targetEntityType) {
+        this.targetEntityType = targetEntityType;
+    }
+
+    public String getTargetEntityType() {
+        return targetEntityType;
+    }
+
+
+    public void setTargetEntityUuid(UUID targetEntityUuid) {
+        this.targetEntityUuid = targetEntityUuid;
+    }
+
+    public UUID getTargetEntityUuid() {
+        return targetEntityUuid;
+    }
+
 
     public void setTemplateJson(String templateJson) {
         this.templateJson = templateJson;
@@ -78,13 +119,7 @@ public class Notification extends StandardEntity {
         this.objects = objects;
     }
 
-    public void setTarget(User target) {
-        this.target = target;
-    }
 
-    public User getTarget() {
-        return target;
-    }
 
     public void setMailing(Mailing mailing) {
         this.mailing = mailing;

@@ -55,7 +55,7 @@
     </servlet-mapping>
     <filter>
         <filter-name>cuba_filter</filter-name>
-        <filter-class>com.lokoproject.mailing.web.beens.CustomFilter</filter-class>
+        <filter-class>com.haulmont.cuba.web.sys.CubaHttpFilter</filter-class>
         <async-supported>true</async-supported>
     </filter>
     <filter-mapping>

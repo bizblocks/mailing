@@ -9,7 +9,7 @@
                               class="com.lokoproject.mailing.entity.Notification">
             <query>
                 <![CDATA[select e from mailing$Notification e 
-where e.target.login=:session$userLogin 
+where e.targetEntityUuid=:session$userId
 and (e.stage=30 
       or e.stage=40)]]>
             </query>
@@ -22,31 +22,39 @@ and (e.stage=30
     <dialogMode height="600"
                 width="800"/>
     <layout>
-        <split height="100%"
-               orientation="horizontal"
-               pos="20"
-               width="100%">
-            <vbox height="100%"
-                  spacing="true">
-                <table id="notificationTable"
-                       height="100%"
-                       multiLineCells="true"
+        <tabSheet id="tabSheet"
+                  height="100%">
+            <tab id="notificationTab"
+                 caption="msg://my_notifications"
+                 margin="true,false,false,false"
+                 spacing="true">
+                <split height="100%"
+                       orientation="horizontal"
+                       pos="20"
                        width="100%">
-                    <columns>
-                        <column id="theme"
-                                width="200"/>
-                        <column id="sendDate"/>
-                    </columns>
-                    <rows datasource="tableNotificationsDs"/>
-                </table>
-            </vbox>
-            <vbox height="100%"
-                  margin="false,true,false,true"
-                  spacing="true">
-                <frame id="frame"
-                       height="100%"
-                       screen="notificationTemplateProcessor"/>
-            </vbox>
-        </split>
+                    <vbox height="100%"
+                          spacing="true">
+                        <table id="notificationTable"
+                               height="100%"
+                               multiLineCells="true"
+                               width="100%">
+                            <columns>
+                                <column id="theme"
+                                        width="200"/>
+                                <column id="sendDate"/>
+                            </columns>
+                            <rows datasource="tableNotificationsDs"/>
+                        </table>
+                    </vbox>
+                    <vbox height="100%"
+                          margin="false,true,false,true"
+                          spacing="true">
+                        <frame id="frame"
+                               height="100%"
+                               screen="notificationTemplateProcessor"/>
+                    </vbox>
+                </split>
+            </tab>
+        </tabSheet>
     </layout>
 </window>

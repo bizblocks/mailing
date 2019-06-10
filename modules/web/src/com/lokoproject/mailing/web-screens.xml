@@ -18,4 +18,6 @@
             template="com/lokoproject/mailing/web/screens/consolidation.xml"/>
     <screen id="mailingManager"
             template="com/lokoproject/mailing/web/mailing/mailingManager.xml"/>
+    <screen id="mailing$WayToGetMailingIdentifier.browse"
+            template="com/lokoproject/mailing/web/waytogetmailingidentifier/way-to-get-mailing-identifier-browse.xml"/>
 </screen-config>

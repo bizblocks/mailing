@@ -42,16 +42,29 @@
         <property name="consolidationGroovy"
                   view="_minimal"/>
         <property name="updateTs"/>
+        <property name="originMailing"
+                  view="_minimal"/>
+        <property name="createTs"/>
+        <property name="createdBy"/>
+        <property name="updatedBy"/>
     </view>
     <view class="com.lokoproject.mailing.entity.Notification"
-          extends="_local"
           name="notification-full">
-        <property name="target"
-                  view="_minimal"/>
         <property name="mailing"
                   view="_minimal">
-            <property name="name"/>
             <property name="mailingPerformers"/>
         </property>
+        <property name="targetEntityUuid"/>
+        <property name="notificationChannels"/>
+        <property name="templateJson"/>
+        <property name="sendDate"/>
+        <property name="stage"/>
+        <property name="targetEntityType"/>
+    </view>
+    <view class="com.lokoproject.mailing.entity.WayToGetMailingIdentifier"
+          extends="_local"
+          name="wayToGetMailingIdentifier-full">
+        <property name="mailingToRequestIdentifer"
+                  view="_minimal"/>
     </view>
 </views>

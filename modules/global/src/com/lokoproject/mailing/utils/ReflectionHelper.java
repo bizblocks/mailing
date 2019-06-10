@@ -1,12 +1,19 @@
 package com.lokoproject.mailing.utils;
 
 
+import com.lokoproject.mailing.notification.event.AbstractNotificationEvent;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 /**
  * @author Antonlomako. created on 17.02.2019.
@@ -49,6 +56,31 @@ public class ReflectionHelper {
         return rVal;
     }
 
+    public static List getClassesNamesFromJar(String jarName,String packageName) {
+        ArrayList classes = new ArrayList();
+
+
+        try {
+            JarInputStream jarFile = new JarInputStream(new FileInputStream(
+                    jarName));
+            JarEntry jarEntry;
+
+            while (true) {
+                jarEntry = jarFile.getNextJarEntry();
+                if (jarEntry == null) {
+                    break;
+                }
+                if ((jarEntry.getName().contains(packageName))&&(jarEntry.getName().endsWith(".class"))) {
+
+                    classes.add(jarEntry.getName().replaceAll("/", "\\."));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return classes;
+    }
+
     /**
      * Load all classes from a package.
      *
@@ -59,14 +91,21 @@ public class ReflectionHelper {
         String path = packageName.replace('.', '/');
         Enumeration<URL> resources = classLoader.getResources(path);
         List<File> dirs = new ArrayList<File>();
+        ArrayList<Class> classes = new ArrayList<Class>();
+        List<String> classNames=new ArrayList<>();
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
-            dirs.add(new File(resource.getFile()));
+            String fileName=resource.getFile().contains("file:/")? resource.getFile().replace("file:/",""):resource.getFile();
+            classNames.addAll(getClassesNamesFromJar(fileName.substring(0,fileName.indexOf("!")),path));
         }
-        ArrayList<Class> classes = new ArrayList<Class>();
-        for (File directory : dirs) {
-            classes.addAll(findClasses(directory, packageName));
-        }
+        classNames.forEach(className->{
+            try {
+                classes.add(classLoader.loadClass(className.replaceAll(".class","")));
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
+            }
+        });
+
         return classes.toArray(new Class[classes.size()]);
     }
 
@@ -91,6 +130,34 @@ public class ReflectionHelper {
             }
         }
         return classes;
+    }
+
+    public static Collection<Class> getAllAvailableNotificationEvents(){
+        ClassLoader classLoader=ReflectionHelper.class.getClassLoader();
+        List<Class> result=new ArrayList<>();
+        try {
+            for(Class classItem:getAllClassesFromPackage("com.lokoproject.mailing.notification.event",classLoader)){
+                if((!classItem.isInterface())&&(!Modifier.isAbstract( classItem.getModifiers()))){
+                    result.add(classItem);
+                }
+            };
+            return result;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public static AbstractNotificationEvent getNotificationEvent(String name){
+        for(Class classItem:getAllAvailableNotificationEvents()){
+            if(classItem.getSimpleName().toLowerCase().startsWith(name.toLowerCase())) try {
+                return (AbstractNotificationEvent) classItem.newInstance();
+            } catch (Exception ignored) {
+            }
+        };
+        throw new IllegalArgumentException("there is no event class with name "+name);
     }
 
 
