@@ -222,7 +222,15 @@ public class Mailing extends StandardEntity {
         return name;
     }
 
+    @Transient
+    private Condition consolidationCondition;
+    public void setConsolidationCondition(Condition consolidationCondition) {
+        this.consolidationCondition = consolidationCondition;
+    }
 
+    public Condition getConsolidationCondition() {
+        return consolidationCondition;
+    }
 
 
     @Retention(RetentionPolicy.RUNTIME)
