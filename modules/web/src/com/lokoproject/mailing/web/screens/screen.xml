@@ -5,7 +5,8 @@
         messagesPack="com.lokoproject.mailing.web.screens">
     <dsContext>
         <collectionDatasource id="mailingsDs"
-                              class="com.lokoproject.mailing.entity.Mailing">
+                              class="com.lokoproject.mailing.entity.Mailing"
+                              view="mailing-full">
             <query>
                 <![CDATA[select e from mailing$Mailing e where e.entityTypeForPersonalSettings is null]]>
             </query>
@@ -15,82 +16,118 @@
                 width="800"/>
     <layout>
         <hbox height="100%"
-              spacing="true">
-            <vbox spacing="true">
-                <hbox spacing="true">
-                    <lookupField id="typeSwitchField"/>
-                    <vbox spacing="true">
-                        <hbox id="entityHbox"
-                              spacing="true">
-                            <lookupField id="typeField"/>
-                            <lookupPickerField id="entityField"
-                                               align="BOTTOM_LEFT"/>
-                        </hbox>
-                        <hbox id="simpleTypeHbox"
-                              spacing="true">
-                            <textField id="textField"/>
-                            <lookupField id="simpleTypeField"/>
-                        </hbox>
-                    </vbox>
-                </hbox>
-                <hbox spacing="true">
-                    <button id="addToMap"
-                            align="BOTTOM_LEFT"
-                            caption="addToMap"
-                            invoke="onAddToMapClick"/>
-                    <textField id="mapKeyField"
-                               caption="mapKey"/>
-                </hbox>
-                <button id="addToList"
-                        caption="addToList"
-                        invoke="onAddToListClick"/>
-                <button id="addAsIs"
-                        caption="addAsIs"
-                        invoke="onAddAsIsClick"/>
-            </vbox>
-            <vbox id="resultVboxWrapper"
+              spacing="true"
+              width="100%">
+            <vbox expand="addingMethodGroupBox"
+                  height="100%"
                   spacing="true">
+                <groupBox caption="msg://current_value"
+                          spacing="true">
+                    <hbox spacing="true">
+                        <lookupField id="typeSwitchField"/>
+                        <vbox spacing="true">
+                            <hbox id="entityHbox"
+                                  spacing="true">
+                                <lookupField id="typeField"/>
+                                <lookupPickerField id="entityField"
+                                                   align="BOTTOM_LEFT"/>
+                            </hbox>
+                            <hbox id="simpleTypeHbox"
+                                  spacing="true">
+                                <textField id="textField"/>
+                                <lookupField id="simpleTypeField"/>
+                            </hbox>
+                            <flowBox id="enumHbox"
+                                     spacing="true">
+                                <vbox spacing="true">
+                                    <textField id="enumPackageField"
+                                               caption="packageToScan"
+                                               width="100%"/>
+                                    <hbox spacing="true"
+                                          width="100%">
+                                        <lookupField id="enumTypeField"/>
+                                        <lookupField id="enumValueField"/>
+                                    </hbox>
+                                </vbox>
+                            </flowBox>
+                        </vbox>
+                    </hbox>
+                </groupBox>
+                <groupBox id="addingMethodGroupBox"
+                          caption="msg://adding_method"
+                          spacing="true">
+                    <vbox spacing="true">
+                        <hbox spacing="true"
+                              width="100%">
+                            <button id="addToMap"
+                                    align="BOTTOM_LEFT"
+                                    caption="addToMap"
+                                    invoke="onAddToMapClick"
+                                    width="150px"/>
+                            <textField id="mapKeyField"
+                                       caption="mapKey"/>
+                        </hbox>
+                        <button id="addAsIs"
+                                caption="addAsIs"
+                                invoke="onAddAsIsClick"
+                                width="150px"/>
+                        <button id="addToList"
+                                caption="addToList"
+                                invoke="onAddToListClick"
+                                width="150px"/>
+                    </vbox>
+                </groupBox>
+            </vbox>
+            <groupBox caption="msg://result_object"
+                      height="100%"
+                      spacing="true">
                 <vbox id="resultVbox"
                       spacing="true"/>
+            </groupBox>
+            <groupBox caption="msg://way_of_calling"
+                      spacing="true">
+                <vbox id="resultVboxWrapper"
+                      spacing="true">
+                    <hbox spacing="true">
+                        <lookupPickerField id="mailingField"
+                                           optionsDatasource="mailingsDs"/>
+                        <button id="addNotification"
+                                caption="addNotification"
+                                invoke="onAddNotificationClick"/>
+                    </hbox>
+                </vbox>
+            </groupBox>
+        </hbox>
+        <groupBox caption="msg://channel_test"
+                  spacing="true">
+            <hbox spacing="true">
+                <textField id="messageContentTextField"
+                           caption="content"/>
+                <textField id="userNameTextField"
+                           caption="user"/>
+                <button id="sendTelegramMsg"
+                        align="BOTTOM_LEFT"
+                        caption="sendTelegramMsg"
+                        invoke="onSendMsgClick"/>
+                <button id="sendWebMsg"
+                        align="BOTTOM_LEFT"
+                        caption="sendWebMsg"
+                        invoke="onSendWebMsgClick"/>
+            </hbox>
+            <groupBox caption="msg://componet_test"
+                      spacing="true">
                 <hbox spacing="true">
-                    <lookupPickerField id="mailingField"
-                                       optionsDatasource="mailingsDs"/>
-                    <button id="addNotification"
-                            caption="addNotification"
-                            invoke="onAddNotificationClick"/>
+                    <button id="shakeBell"
+                            caption="shakeBell"
+                            invoke="onShakeBellClick"/>
+                    <button id="showDesctopNotification"
+                            caption="showDesctopNotification"
+                            invoke="onShowDesctopNotificationClick"/>
+                    <button id="startBot"
+                            caption="startBot"
+                            invoke="onStartBotClick"/>
                 </hbox>
-            </vbox>
-        </hbox>
-        <hbox spacing="true">
-            <textField id="messageContentTextField"
-                       caption="content"/>
-            <textField id="userNameTextField"
-                       caption="user"/>
-            <button id="sendTelegramMsg"
-                    align="BOTTOM_LEFT"
-                    caption="sendTelegramMsg"
-                    invoke="onSendMsgClick"/>
-            <button id="sendWebMsg"
-                    align="BOTTOM_LEFT"
-                    caption="sendWebMsg"
-                    invoke="onSendWebMsgClick"/>
-            <button id="shakeBell"
-                    caption="shakeBell"
-                    invoke="onShakeBellClick"/>
-            <button id="showDesctopNotification"
-                    caption="showDesctopNotification"
-                    invoke="onShowDesctopNotificationClick"/>
-            <button id="startBot"
-                    caption="startBot"
-                    invoke="onStartBotClick"/>
-        </hbox>
-        <hbox spacing="true">
-            <textArea id="htmlTextField"
-                      height="167px"
-                      width="396px"/>
-            <button id="htmlButton"
-                    caption="htmlButton"
-                    invoke="onHtmlButtonClick"/>
-        </hbox>
+            </groupBox>
+        </groupBox>
     </layout>
 </window>

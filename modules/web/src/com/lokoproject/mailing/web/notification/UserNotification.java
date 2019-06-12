@@ -36,7 +36,7 @@ public class UserNotification extends AbstractWindow {
     private CollectionDatasource<Notification,UUID> notificationsDs;
 
     @Inject
-    private Table<Notification> notificationTable;
+    private GroupTable<Notification> notificationTable;
 
     @Inject
     private ComponentsFactory componentsFactory;
@@ -61,6 +61,7 @@ public class UserNotification extends AbstractWindow {
         tab.setCaption(getMessage("my_mailings"));
 
         Component personalMailingBrowse=openFrame(null,"mailing$Mailing.browse",ParamsMap.of("idForPersonalSettings",userSession.getUser().getId()));
+        personalMailingBrowse.setHeight("100%");
         layout.add(personalMailingBrowse);
 
         tableNotificationsDs.addItemChangeListener(event->{
@@ -72,6 +73,27 @@ public class UserNotification extends AbstractWindow {
                return;
             }
             webClientNotificationPerformer.markNotificationAsRead(event.getItem());
+            frame.add(openFrame(frame,"notificationTemplateProcessor", ParamsMap.of("notificationTemplate",event.getItem().getTemplate() )));
+        });
+
+
+
+        tableNotificationsDs.addItemChangeListener(event->{
+            if(event.getItem()==null){
+                frame.removeAll();
+                return;
+            }
+            if(event.getItem().equals(event.getPrevItem()))
+            frame.removeAll();
+
+            if((event.getPrevItem()!=null)&&(event.getPrevItem().equals(event.getItem()))){
+                return;
+            }
+            if(event.getItem().getStage().getId()<NotificationStage.READ.getId()){
+                notificationService.updateNotificationStage(event.getItem(),NotificationStage.READ);
+                webClientNotificationPerformer.markNotificationAsRead(event.getItem());
+            }
+
             frame.add(openFrame(frame,"notificationTemplateProcessor", ParamsMap.of("notificationTemplate",event.getItem().getTemplate() )));
         });
 
@@ -89,15 +111,20 @@ public class UserNotification extends AbstractWindow {
             return null;
         });
 
-        notificationTable.sort("sendDate", Table.SortDirection.DESCENDING);
+        //notificationTable.sort("sendDateWOTime", Table.SortDirection.DESCENDING);
     }
 
     @Override
     public void ready(){
         notificationsDs.refresh();
+        //два датасорса чтобы делать рефреш без хождения в базу
         notificationsDs.getItems().forEach(notification -> {
             tableNotificationsDs.addItem(notification);
         });
+
+        Table.Column stageColumn=notificationTable.getColumn("stage");
+        notificationTable.sort(stageColumn.toString(), Table.SortDirection.ASCENDING);
+        stageColumn.setCollapsed(true);
     }
 
     public void updateNotificationStageInTable(Notification notification){
@@ -110,7 +137,7 @@ public class UserNotification extends AbstractWindow {
         if(notificationToUpdate!=null){
             notificationToUpdate.setStage(notification.getStage());
         }
-        tableNotificationsDs.refresh();
+        notificationTable.repaint();
         
     }
 }

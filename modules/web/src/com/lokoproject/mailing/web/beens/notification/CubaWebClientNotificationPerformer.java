@@ -91,15 +91,16 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
             }
         }));
 
-        uiAccessorCollector.executeFor(userIdentifier,"userNotification",(window -> {
-            if(window instanceof UserNotification){
-                UserNotification userNotification= (UserNotification) window;
-                userNotification.updateNotificationStageInTable(event.getNotification());
-            }
-        }));
+
 
         uiAccessorCollector.executeFor(userIdentifier,"main",(window)->{
             notificationService.updateNotificationStage(event.getNotification(), NotificationStage.PROCESSED);
+            uiAccessorCollector.executeFor(userIdentifier,"userNotification",(window1 -> {
+                if(window1 instanceof UserNotification){
+                    UserNotification userNotification= (UserNotification) window1;
+                    userNotification.updateNotificationStageInTable(event.getNotification());
+                }
+            }));
             // TODO: 08.02.2019 перенести в отдельный метод и выполнять асинхронно
         });
     }

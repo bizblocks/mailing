@@ -150,6 +150,24 @@ public class ReflectionHelper {
         return result;
     }
 
+    public static Collection<Class> getAllDeclaredEnum(String packageName){
+        ClassLoader classLoader=ReflectionHelper.class.getClassLoader();
+        List<Class> result=new ArrayList<>();
+        try {
+            for(Class classItem:getAllClassesFromPackage(packageName,classLoader)){
+                if(classItem.isEnum()){
+                    result.add(classItem);
+                }
+            };
+            return result;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
     public static AbstractNotificationEvent getNotificationEvent(String name){
         for(Class classItem:getAllAvailableNotificationEvents()){
             if(classItem.getSimpleName().toLowerCase().startsWith(name.toLowerCase())) try {

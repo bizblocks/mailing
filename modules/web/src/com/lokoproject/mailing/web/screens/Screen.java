@@ -1,9 +1,7 @@
 package com.lokoproject.mailing.web.screens;
 
-import com.haulmont.bali.util.ParamsMap;
 import com.haulmont.cuba.core.global.Metadata;
 import com.haulmont.cuba.core.global.View;
-import com.haulmont.cuba.gui.WindowManager;
 import com.haulmont.cuba.gui.components.*;
 import com.haulmont.cuba.gui.data.CollectionDatasource;
 import com.haulmont.cuba.gui.data.DsBuilder;
@@ -16,6 +14,7 @@ import com.lokoproject.mailing.service.DaoService;
 import com.lokoproject.mailing.service.IdentifierService;
 import com.lokoproject.mailing.service.NotificationService;
 import com.lokoproject.mailing.utils.HtmlTemplateHelper;
+import com.lokoproject.mailing.utils.ReflectionHelper;
 import com.lokoproject.mailing.web.beens.notification.CubaWebClientNotificationPerformer;
 import com.lokoproject.mailing.web.beens.ui.UiAccessorCollector;
 
@@ -29,7 +28,16 @@ public class Screen extends AbstractWindow {
     private TextField textField;
 
     @Inject
+    private TextField enumPackageField;
+
+    @Inject
     private LookupField typeField;
+
+    @Inject
+    private LookupField enumTypeField;
+
+    @Inject
+    private LookupField enumValueField;
 
     @Inject
     private LookupPickerField entityField;
@@ -51,6 +59,9 @@ public class Screen extends AbstractWindow {
 
     @Inject
     private HBoxLayout simpleTypeHbox;
+
+    @Inject
+    private FlowBoxLayout enumHbox;
 
     @Inject
     private LookupPickerField mailingField;
@@ -102,21 +113,30 @@ public class Screen extends AbstractWindow {
     public void init(Map<String,Object> params){
         initEntityField();
         initSimpleTypeField();
+        initEnumField();
         initTypeSwitchField();
     }
 
     private void initTypeSwitchField() {
-        typeSwitchField.setOptionsList(Arrays.asList("simple","entity"));
+        typeSwitchField.setOptionsList(Arrays.asList("simple","entity","enum"));
         typeSwitchField.setNullOptionVisible(false);
         typeSwitchField.setValue("simple");
         entityHbox.setVisible(false);
+        enumHbox.setVisible(false);
         typeSwitchField.addValueChangeListener(event->{
             if("simple".equals(event.getValue())){
                 entityHbox.setVisible(false);
+                enumHbox.setVisible(false);
                 simpleTypeHbox.setVisible(true);
             }
-            else{
+            else if("entity".equals(event.getValue())){
                 entityHbox.setVisible(true);
+                enumHbox.setVisible(false);
+                simpleTypeHbox.setVisible(false);
+            }
+            else{
+                entityHbox.setVisible(false);
+                enumHbox.setVisible(true);
                 simpleTypeHbox.setVisible(false);
             }
         });
@@ -148,6 +168,32 @@ public class Screen extends AbstractWindow {
         });
 
         entityField.setEnabled(false);
+    }
+
+    private Map<String,Class> enumMap=new HashMap<>();
+    private void initEnumField(){
+        enumPackageField.addValueChangeListener(event->{
+            if(event.getValue()==null) return;
+            List<String> metaclassList=new ArrayList<>();
+            ReflectionHelper.getAllDeclaredEnum((String) event.getValue()).forEach(enumItem->{
+                metaclassList.add(enumItem.getSimpleName());
+                enumMap.put(enumItem.getSimpleName(),enumItem);
+            });
+            enumTypeField.setOptionsList(metaclassList);
+        });
+
+        enumTypeField.setNullOptionVisible(false);
+        enumTypeField.addValueChangeListener(event->{
+            Class enumItem=enumMap.get(event.getValue());
+            if(enumItem==null) return;
+            Object [] values=enumItem.getEnumConstants();
+            enumValueField.setOptionsList(Arrays.asList(values));
+
+            enumValueField.setEnabled(true);
+        });
+
+        entityField.setEnabled(false);
+        enumValueField.setNullOptionVisible(false);
     }
 
     public void onShakeBellClick() {
@@ -252,8 +298,11 @@ public class Screen extends AbstractWindow {
             }
             else return null;
         }
-        else{
+        else if("entity".equals(typeSwitchField.getValue())){
             return entityField.getValue();
+        }
+        else{
+            return enumValueField.getValue();
         }
 
     }

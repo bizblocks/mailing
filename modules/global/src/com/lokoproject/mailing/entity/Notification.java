@@ -2,15 +2,14 @@ package com.lokoproject.mailing.entity;
 
 import javax.persistence.*;
 
+import com.haulmont.chile.core.annotations.MetaProperty;
 import com.haulmont.cuba.core.entity.StandardEntity;
 import com.haulmont.cuba.security.entity.User;
 import com.lokoproject.mailing.notification.template.TemplateWrapper;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Date;
+import java.util.*;
+
 import com.haulmont.cuba.core.entity.annotation.Listeners;
-import java.util.UUID;
 
 @Listeners("mailing_NotificationEntityListener")
 @Table(name = "MAILING_NOTIFICATION")
@@ -43,6 +42,10 @@ public class Notification extends StandardEntity {
 
     @Column(name = "TARGET_ENTITY_TYPE")
     protected String targetEntityType;
+
+    @MetaProperty
+    @Transient
+    protected String theme;
 
     @Transient
     protected TemplateWrapper template;
@@ -100,6 +103,17 @@ public class Notification extends StandardEntity {
         return sendDate;
     }
 
+    @MetaProperty
+    public Date getSendDateWOTime(){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(sendDate);
+        cal.set(Calendar.HOUR_OF_DAY, cal.getActualMinimum(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
+        cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
+        cal.set(Calendar.MILLISECOND, cal.getActualMinimum(Calendar.MILLISECOND));
+        return cal.getTime();
+    }
+
 
     public void setStage(NotificationStage stage) {
         this.stage = stage == null ? null : stage.getId();
@@ -136,5 +150,9 @@ public class Notification extends StandardEntity {
 
     public void setTemplate(TemplateWrapper template) {
         this.template = template;
+    }
+
+    public String getTheme() {
+        return template.getTheme();
     }
 }
