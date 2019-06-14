@@ -268,17 +268,34 @@ public class NotificationServiceBean implements NotificationService {
 
 
     Collection<StandardEntity> getUsersToNotify(Mailing mailing,Object object) {
-        if((mailing.getMailingTargetScript()==null)||(StringUtils.isEmpty(mailing.getMailingTargetScript().getScript()))) return Collections.emptyList();
+        if((mailing.getMailingTargetScript()==null)||(mailing.getMailingTargetScript().size()==0)) return Collections.emptyList();
+        Collection<StandardEntity> result=new ArrayList<>();
+
+        Map<String, Object> binding = new HashMap<>();
+        binding.put("object", runAdapterOfMailingTargetScript(mailing,object));
+
+        mailing.getMailingTargetScript().forEach(script->{
+            try {
+                Collection<StandardEntity> currentResult= scripting.evaluateGroovy(script.getScript(), binding);
+                result.addAll(currentResult);
+
+            } catch (Exception ignored) {}
+        });
+
+        return result;
+    }
+
+    private Object runAdapterOfMailingTargetScript(Mailing mailing,Object object){
+        if((mailing.getAdapterForMailingTargetScreen()==null)||(StringUtils.isEmpty(mailing.getAdapterForMailingTargetScreen().getScript()))) return object;
 
         try {
             Map<String, Object> binding = new HashMap<>();
             binding.put("object", object);
 
-            Collection<StandardEntity> result= scripting.evaluateGroovy(mailing.getMailingTargetScript().getScript(), binding);
-            return result;
-
+            Object result=scripting.evaluateGroovy(mailing.getObjectFilterScript().getScript(), binding);
+            return  result;
         } catch (Exception e) {
-            return Collections.emptyList();
+            return object;
         }
     }
 

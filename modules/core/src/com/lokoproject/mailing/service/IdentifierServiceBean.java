@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -126,7 +127,15 @@ public class IdentifierServiceBean implements IdentifierService {
 
     @Override
     public Set<String> getAvailableEntityTypesForChanel(String telegram) {
-        return null;
+
+        Collection<WayToGetMailingIdentifier> allTelegramIdentifiers=(Collection)daoService.getAllEntities(metadata.getSession().getClass(WayToGetMailingIdentifier.class).getName());
+        Set<String> result=new HashSet<>();
+        allTelegramIdentifiers.forEach(identifier->{
+            if(identifier.getEntityType()!=null){
+                result.add(identifier.getEntityType());
+            }
+        });
+        return result;
     }
 
     @Override

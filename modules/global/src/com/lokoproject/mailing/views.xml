@@ -27,14 +27,6 @@
             <property name="returnType"/>
             <property name="entityType"/>
         </property>
-        <property name="finalDecorationScript"
-                  view="_minimal">
-            <property name="script"/>
-            <property name="scripVersion"/>
-            <property name="scriptVersionComment"/>
-            <property name="returnType"/>
-            <property name="entityType"/>
-        </property>
         <property name="notificationBuildScript"
                   view="_minimal">
             <property name="script"/>
@@ -47,6 +39,14 @@
         <property name="createTs"/>
         <property name="createdBy"/>
         <property name="updatedBy"/>
+        <property name="adapterForMailingTargetScreen"
+                  view="_minimal">
+            <property name="script"/>
+            <property name="scripVersion"/>
+            <property name="scriptVersionComment"/>
+            <property name="returnType"/>
+            <property name="entityType"/>
+        </property>
     </view>
     <view class="com.lokoproject.mailing.entity.Notification"
           name="notification-full">

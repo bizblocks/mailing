@@ -14,6 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.UUID;
 import com.haulmont.chile.core.annotations.NamePattern;
+import java.util.List;
 
 @NamePattern("%s|name")
 @Listeners("mailing_MailingEntityListener")
@@ -22,9 +23,11 @@ import com.haulmont.chile.core.annotations.NamePattern;
 public class Mailing extends StandardEntity {
     private static final long serialVersionUID = -2020259493447278898L;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MAILING_TARGET_SCRIPT_ID")
-    protected GroovyScript mailingTargetScript;
+    @JoinTable(name = "MAILING_MAILING_GROOVY_SCRIPT_LINK",
+        joinColumns = @JoinColumn(name = "MAILING_ID"),
+        inverseJoinColumns = @JoinColumn(name = "GROOVY_SCRIPT_ID"))
+    @ManyToMany
+    protected List<GroovyScript> mailingTargetScript;
 
 
 
@@ -73,9 +76,10 @@ public class Mailing extends StandardEntity {
     @JoinColumn(name = "FINAL_CHECK_SCRIPT_ID")
     protected GroovyScript finalCheckScript;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "FINAL_DECORATION_SCRIPT_ID")
-    protected GroovyScript finalDecorationScript;
+    @JoinColumn(name = "ADAPTER_FOR_MAILING_TARGET_SCREEN_ID")
+    protected GroovyScript adapterForMailingTargetScreen;
 
     @Column(name = "MAILING_PERFORMERS", length = 1000)
     @Personalized
@@ -182,13 +186,7 @@ public class Mailing extends StandardEntity {
     }
 
 
-    public void setMailingTargetScript(GroovyScript mailingTargetScript) {
-        this.mailingTargetScript = mailingTargetScript;
-    }
 
-    public GroovyScript getMailingTargetScript() {
-        return mailingTargetScript;
-    }
 
     public void setObjectFilterScript(GroovyScript objectFilterScript) {
         this.objectFilterScript = objectFilterScript;
@@ -206,13 +204,7 @@ public class Mailing extends StandardEntity {
         return finalCheckScript;
     }
 
-    public void setFinalDecorationScript(GroovyScript finalDecorationScript) {
-        this.finalDecorationScript = finalDecorationScript;
-    }
 
-    public GroovyScript getFinalDecorationScript() {
-        return finalDecorationScript;
-    }
 
     public void setName(String name) {
         this.name = name;
@@ -224,6 +216,24 @@ public class Mailing extends StandardEntity {
 
     @Transient
     private Condition consolidationCondition;
+
+    public List<GroovyScript> getMailingTargetScript() {
+        return mailingTargetScript;
+    }
+
+    public void setMailingTargetScript(List<GroovyScript> mailingTargetScript) {
+        this.mailingTargetScript = mailingTargetScript;
+    }
+
+    public void setAdapterForMailingTargetScreen(GroovyScript adapterForMailingTargetScreen) {
+        this.adapterForMailingTargetScreen = adapterForMailingTargetScreen;
+    }
+
+    public GroovyScript getAdapterForMailingTargetScreen() {
+        return adapterForMailingTargetScreen;
+    }
+
+
     public void setConsolidationCondition(Condition consolidationCondition) {
         this.consolidationCondition = consolidationCondition;
     }

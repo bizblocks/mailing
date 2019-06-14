@@ -1,6 +1,7 @@
 package com.lokoproject.mailing.service;
 
 import com.haulmont.bali.util.ParamsMap;
+import com.haulmont.chile.core.annotations.MetaClass;
 import com.haulmont.cuba.core.EntityManager;
 import com.haulmont.cuba.core.Query;
 import com.haulmont.cuba.core.Transaction;
@@ -69,7 +70,16 @@ public class DaoServiceBean implements DaoService {
     @Override
     public UUID getEntityIdByFieldValue(String entityType, String fieldName, String fieldValue){
         try {
-            String tableName = ((Table) metadata.getSession().getClass(entityType).getJavaClass().getAnnotation(Table.class)).name();
+            com.haulmont.chile.core.model.MetaClass metaClass=metadata.getSession().getClass(entityType);
+
+            Table tableAnnotation=null;
+            Class currentClass=metaClass.getJavaClass();
+            tableAnnotation=(Table) currentClass.getAnnotation(Table.class);
+            while(tableAnnotation==null){
+                currentClass=currentClass.getSuperclass();
+                tableAnnotation=(Table) currentClass.getAnnotation(Table.class);
+            }
+            String tableName = tableAnnotation.name();
             List idList = getFieldFromTable(tableName, "id", fieldName, fieldValue);
             if (idList.size() == 1) {
                 return (UUID) idList.get(0);

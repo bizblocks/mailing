@@ -51,6 +51,9 @@ public class MailingBrowse extends EntityCombinedScreen {
     private Filter filter;
 
     @Inject
+    private Table mailingTargetScriptTable;
+
+    @Inject
     private Table table;
 
     @Override
@@ -63,6 +66,8 @@ public class MailingBrowse extends EntityCombinedScreen {
         if((params.get("idForPersonalSettings")!=null)||(params.get("typeForPersonalSettings")!=null)){
 
             filter.setVisible(false);
+            mailingTargetScriptTable.setVisible(false);
+
             hideNotPersonalizedFields();
             addUseDefaultField();
 

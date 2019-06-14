@@ -187,7 +187,6 @@ public class CheckInBot implements BotBehavior {
         if(availableEntityTypes ==null) {
             availableEntityTypes =identifierService.getAvailableEntityTypesForChanel("Telegram");
             if(availableEntityTypes==null) availableEntityTypes=new HashSet<>();
-            availableEntityTypes.add("sec$User");
 
             availableEntityTypes.forEach(type->{
                 String caption=typeMap.get(type);

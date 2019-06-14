@@ -114,6 +114,10 @@ public class Mailingmanager extends AbstractWindow {
 
     public void onUpdateMailingsClick() {
         Mailing mailing=mailingsTable.getSingleSelected();
+        if(mailing==null){
+            showNotification(getMessage("select_mailing"),NotificationType.WARNING);
+            return;
+        }
         notificationService.updateMailing(mailing);
     }
 

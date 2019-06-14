@@ -13,15 +13,18 @@
     <dsContext>
         <datasource id="mailingDs"
                     class="com.lokoproject.mailing.entity.Mailing"
-                    view="mailing-full"/>
-        <collectionDatasource id="mailingsDs"
-                              class="com.lokoproject.mailing.entity.Mailing"
-                              view="mailing-full">
+                    view="mailing-full">
+            <collectionDatasource id="mailingTargetScriptDs"
+                                  property="mailingTargetScript"/>
+        </datasource>
+        <groupDatasource id="mailingsDs"
+                         class="com.lokoproject.mailing.entity.Mailing"
+                         view="mailing-full">
             <query>
-                <![CDATA[select e from mailing$Mailing e 
+                <![CDATA[select e from mailing$Mailing e
 where e.entityIdForPersonalSettings =:custom$idForPersonalSettings]]>
             </query>
-        </collectionDatasource>
+        </groupDatasource>
     </dsContext>
     <actions>
         <action id="save"
@@ -53,8 +56,8 @@ where e.entityIdForPersonalSettings =:custom$idForPersonalSettings]]>
                         datasource="mailingsDs">
                     <properties include=".*"/>
                 </filter>
-                <table id="table"
-                       width="100%">
+                <groupTable id="table"
+                            width="100%">
                     <actions>
                         <action id="create"/>
                         <action id="edit"/>
@@ -62,6 +65,7 @@ where e.entityIdForPersonalSettings =:custom$idForPersonalSettings]]>
                     </actions>
                     <columns>
                         <column id="name"/>
+                        <column id="activated"/>
                     </columns>
                     <rows datasource="mailingsDs"/>
                     <rowsCount/>
@@ -74,7 +78,7 @@ where e.entityIdForPersonalSettings =:custom$idForPersonalSettings]]>
                         <button id="removeBtn"
                                 action="table.remove"/>
                     </buttonsPanel>
-                </table>
+                </groupTable>
             </vbox>
             <vbox id="editBox"
                   expand="fieldGroupBox"
@@ -83,18 +87,33 @@ where e.entityIdForPersonalSettings =:custom$idForPersonalSettings]]>
                   spacing="true">
                 <scrollBox id="fieldGroupBox">
                     <fieldGroup id="fieldGroup"
-                                datasource="mailingDs"
-                                width="100%">
-                        <column width="400px">
+                                datasource="mailingDs">
+                        <column width="250px">
                             <field property="name"/>
                             <field property="stringId"/>
                             <field property="objectFilterScript"/>
-                            <field property="mailingTargetScript"/>
                             <field property="notificationBuildScript"/>
-                            <field property="useDefaultMailing"/>
+                            <field property="adapterForMailingTargetScreen"/>
                         </column>
                     </fieldGroup>
                 </scrollBox>
+                <table id="mailingTargetScriptTable"
+                       caption="msg://mailing_target"
+                       height="200px"
+                       width="100%">
+                    <actions>
+                        <action id="add"/>
+                        <action id="remove"/>
+                    </actions>
+                    <columns>
+                        <column id="name"/>
+                    </columns>
+                    <rows datasource="mailingTargetScriptDs"/>
+                    <buttonsPanel>
+                        <button action="mailingTargetScriptTable.add"/>
+                        <button action="mailingTargetScriptTable.remove"/>
+                    </buttonsPanel>
+                </table>
                 <hbox id="actionsPane"
                       spacing="true"
                       visible="false">
