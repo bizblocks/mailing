@@ -1,14 +1,13 @@
 package com.lokoproject.mailing.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haulmont.bali.util.ParamsMap;
-import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.entity.StandardEntity;
 import com.haulmont.cuba.core.entity.contracts.Id;
 import com.haulmont.cuba.core.global.*;
 import com.haulmont.cuba.security.app.Authenticated;
 import com.haulmont.cuba.security.entity.User;
 import com.lokoproject.mailing.conditions.ConditionException;
+import com.lokoproject.mailing.dto.ResultOfAddingNotification;
 import com.lokoproject.mailing.entity.NotificationStage;
 import com.lokoproject.mailing.entity.NotificationStageLog;
 import com.lokoproject.mailing.notification.event.AbstractNotificationEvent;
@@ -83,23 +82,37 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
-    public void addNotification(Object object){
-
-        Collection<Mailing> mailings=getAllMailings();
-        mailings.forEach(mailing->{
-            addNotification(mailing,object);
-        });
+    public ResultOfAddingNotification addNotification(Object object){
+        return addNotification(object,false);
     }
 
     @Override
-    public void addNotification(Mailing mailing,Object object){
+    public ResultOfAddingNotification addNotification(Mailing mailing, Object object){
+        return addNotification(mailing, object,false);
+    }
+
+    @Override
+    public ResultOfAddingNotification addNotification(Object object, Boolean onlyCheck){
+        ResultOfAddingNotification result=new ResultOfAddingNotification();
+        Collection<Mailing> mailings=getAllMailings();
+        mailings.forEach(mailing->{
+            result.joinResults(addNotification(mailing,object,onlyCheck));
+        });
+        return result;
+    }
+
+    @Override
+    public ResultOfAddingNotification addNotification(Mailing mailing, Object object, Boolean onlyCheck){
+        ResultOfAddingNotification result=new ResultOfAddingNotification();
         if(mailing.getActivated()){
             if(isAcceptableForObject(mailing,object)){
-                getUsersToNotify(mailing,object).forEach(user->{
-                    addObjectToNotification(user,mailing,object);
+                getUsersToNotify(mailing,object).forEach(entity->{
+                    if(!onlyCheck)addObjectToNotification(entity,mailing,object);
+                    result.addMailingTarget(mailing,entity);
                 });
             }
         }
+        return result;
     }
 
     @Override

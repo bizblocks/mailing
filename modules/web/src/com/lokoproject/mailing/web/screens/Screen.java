@@ -8,6 +8,8 @@ import com.haulmont.cuba.gui.data.DsBuilder;
 import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
 import com.haulmont.cuba.security.entity.User;
 import com.haulmont.cuba.security.global.UserSession;
+import com.lokoproject.mailing.dto.ResultOfAddingNotification;
+import com.lokoproject.mailing.entity.JustTransient;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.service.BotService;
 import com.lokoproject.mailing.service.DaoService;
@@ -66,6 +68,9 @@ public class Screen extends AbstractWindow {
     @Inject
     private LookupPickerField mailingField;
 
+    @Inject
+    private CheckBox checkOnly;
+
 
     @Inject
     private NotificationService notificationService;
@@ -105,6 +110,9 @@ public class Screen extends AbstractWindow {
 
     @Inject
     private ComponentsFactory componentsFactory;
+
+    @Inject
+    private CollectionDatasource mailingTargetsDs;
 
 
     private Object objectToAddToNotification;
@@ -331,12 +339,44 @@ public class Screen extends AbstractWindow {
             showNotification(getMessage("set_object"),NotificationType.WARNING);
             return;
         }
+        updateMailingTargetDs(notificationService.addNotification(objectToAddToNotification,checkOnly.getValue()));
+    }
+
+    public void onAddNotificationToMailingClick() {
+        if(objectToAddToNotification==null){
+            showNotification(getMessage("set_object"),NotificationType.WARNING);
+            return;
+        }
         if(mailingField.getValue()==null){
-            notificationService.addNotification(objectToAddToNotification);
+            showNotification(getMessage("set_mailing"),NotificationType.WARNING);
+            return;
         }
         else{
             Mailing mailing=mailingField.getValue();
-            notificationService.addNotification(mailing,objectToAddToNotification);
+            updateMailingTargetDs(notificationService.addNotification(mailing,objectToAddToNotification,checkOnly.getValue()));
         }
+    }
+
+    private void updateMailingTargetDs(ResultOfAddingNotification resultOfAddingNotification) {
+        mailingTargetsDs.clear();
+
+        if(resultOfAddingNotification.getMailingTargetsMap().size()==0){
+            JustTransient mailingItem=metadata.create(JustTransient.class);
+            mailingItem.setName(getMessage("no_receivers"));
+            mailingTargetsDs.addItem(mailingItem);
+        }
+
+        resultOfAddingNotification.getMailingTargetsMap().forEach((mailing,entitySet)->{
+            JustTransient mailingItem=metadata.create(JustTransient.class);
+            mailingItem.setName(mailing.getName());
+            mailingTargetsDs.addItem(mailingItem);
+
+            entitySet.forEach(entity -> {
+                JustTransient entityItem=metadata.create(JustTransient.class);
+                entityItem.setName(entity.getInstanceName());
+                entityItem.setParent(mailingItem);
+                mailingTargetsDs.addItem(entityItem);
+            });
+        });
     }
 }

@@ -11,15 +11,19 @@
                 <![CDATA[select e from mailing$Mailing e where e.entityTypeForPersonalSettings is null]]>
             </query>
         </collectionDatasource>
+        <hierarchicalDatasource id="mailingTargetsDs"
+                                allowCommit="false"
+                                class="com.lokoproject.mailing.entity.JustTransient"
+                                hierarchyProperty="parent"
+                                refreshMode="NEVER"/>
     </dsContext>
     <dialogMode height="600"
                 width="800"/>
-    <layout>
-        <hbox height="100%"
+    <layout expand="main">
+        <hbox id="main"
               spacing="true"
               width="100%">
             <vbox expand="addingMethodGroupBox"
-                  height="100%"
                   spacing="true">
                 <groupBox caption="msg://current_value"
                           spacing="true">
@@ -77,6 +81,30 @@
                                 width="150px"/>
                     </vbox>
                 </groupBox>
+                <groupBox caption="msg://way_of_calling"
+                          spacing="true">
+                    <vbox id="resultVboxWrapper"
+                          spacing="true">
+                        <hbox spacing="true">
+                            <checkBox id="checkOnly"
+                                      caption="msg://checkOnly"/>
+                        </hbox>
+                        <hbox spacing="true"
+                              width="100%">
+                            <button id="addNotification"
+                                    caption="msg://add_notification"
+                                    invoke="onAddNotificationClick"
+                                    width="100%"/>
+                        </hbox>
+                        <hbox spacing="true">
+                            <lookupPickerField id="mailingField"
+                                               optionsDatasource="mailingsDs"/>
+                            <button id="addNotificationToMailing"
+                                    caption="msg://add_notification_to_mailing"
+                                    invoke="onAddNotificationToMailingClick"/>
+                        </hbox>
+                    </vbox>
+                </groupBox>
             </vbox>
             <groupBox caption="msg://result_object"
                       height="100%"
@@ -84,19 +112,12 @@
                 <vbox id="resultVbox"
                       spacing="true"/>
             </groupBox>
-            <groupBox caption="msg://way_of_calling"
-                      spacing="true">
-                <vbox id="resultVboxWrapper"
-                      spacing="true">
-                    <hbox spacing="true">
-                        <lookupPickerField id="mailingField"
-                                           optionsDatasource="mailingsDs"/>
-                        <button id="addNotification"
-                                caption="addNotification"
-                                invoke="onAddNotificationClick"/>
-                    </hbox>
-                </vbox>
-            </groupBox>
+            <tree caption="msg://mailing_targets"
+                  height="100%"
+                  stylename="borderless"
+                  width="100%">
+                <treechildren datasource="mailingTargetsDs"/>
+            </tree>
         </hbox>
         <groupBox caption="msg://channel_test"
                   spacing="true">
