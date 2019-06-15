@@ -61,6 +61,13 @@ and (e.stage=30
                     </vbox>
                 </split>
             </tab>
+            <tab caption="msg://my_mailings"
+                 margin="true,false,false,false"
+                 spacing="true">
+                <vbox id="userMailingsVbox"
+                      height="100%"
+                      spacing="true"/>
+            </tab>
         </tabSheet>
     </layout>
 </window>

@@ -88,12 +88,9 @@ public class Mailing extends StandardEntity {
     @Column(name = "NAME")
     protected String name;
 
-
-
-
-
-
-
+    @Transient
+    @Personalized
+    private Condition consolidationCondition;
 
     public void setUseDefaultMailing(Boolean useDefaultMailing) {
         this.useDefaultMailing = useDefaultMailing;
@@ -213,9 +210,6 @@ public class Mailing extends StandardEntity {
     public String getName() {
         return name;
     }
-
-    @Transient
-    private Condition consolidationCondition;
 
     public List<GroovyScript> getMailingTargetScript() {
         return mailingTargetScript;

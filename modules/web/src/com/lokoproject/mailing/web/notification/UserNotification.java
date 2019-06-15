@@ -47,22 +47,19 @@ public class UserNotification extends AbstractWindow {
     @Inject
     CubaWebClientNotificationPerformer webClientNotificationPerformer;
 
+    @Inject
+    private VBoxLayout userMailingsVbox;
+
     @Override
     public void init(Map<String,Object> params){
 
         uiAccessorCollector.addAccessor(this,"userNotification",userSession.getUser());
 
-        VBoxLayout layout = componentsFactory.createComponent(VBoxLayout.class);
-        layout.setHeight("100%");
-        layout.setWidth("100%");
-        layout.setId("mailingTab");
-        layout.setMargin(true,false,false,false);
-        TabSheet.Tab tab = tabSheet.addTab("mailingTab", layout);
-        tab.setCaption(getMessage("my_mailings"));
+        userMailingsVbox.setMargin(true,false,false,false);
 
         Component personalMailingBrowse=openFrame(null,"mailing$Mailing.browse",ParamsMap.of("idForPersonalSettings",userSession.getUser().getId()));
         personalMailingBrowse.setHeight("100%");
-        layout.add(personalMailingBrowse);
+        userMailingsVbox.add(personalMailingBrowse);
 
         tableNotificationsDs.addItemChangeListener(event->{
             frame.removeAll();
