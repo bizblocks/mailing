@@ -43,6 +43,9 @@ public class Notification extends StandardEntity {
     @Column(name = "TARGET_ENTITY_TYPE")
     protected String targetEntityType;
 
+    @Column(name = "TARGET_ENTITY_NAME")
+    protected String targetEntityName;
+
     @MetaProperty
     @Transient
     protected String theme;
@@ -65,6 +68,7 @@ public class Notification extends StandardEntity {
     public void setTarget(StandardEntity entity){
         targetEntityUuid=entity.getUuid();
         targetEntityType=entity.getMetaClass().getName();
+        targetEntityName=entity.getInstanceName();
     }
 
 
@@ -154,5 +158,13 @@ public class Notification extends StandardEntity {
 
     public String getTheme() {
         return template.getTheme();
+    }
+
+    public String getTargetEntityName() {
+        return targetEntityName;
+    }
+
+    public void setTargetEntityName(String targetEntityName) {
+        this.targetEntityName = targetEntityName;
     }
 }

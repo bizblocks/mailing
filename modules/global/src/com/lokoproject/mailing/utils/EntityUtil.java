@@ -71,8 +71,7 @@ public class EntityUtil {
                 Object value = f.get(source);
                 f.set(target,value);
             }
-            catch (Exception ed){
-                ed.printStackTrace();
+            catch (Exception ignored){
             }
         }
 

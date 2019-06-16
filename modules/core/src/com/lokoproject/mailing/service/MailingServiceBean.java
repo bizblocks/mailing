@@ -126,7 +126,14 @@ public class MailingServiceBean implements MailingService {
         }
     }
 
+    @Override
+    public void updateAllMailings(){
+        personalizedMailingForEntityMap=null;
+        init();
+    }
+
     private void putPersonalisedMailingToMap(UUID entityId, String entityType, Mailing mailing){
+        if(mailing.getStringId()==null) return;
         if(entityId!=null){
             personalizedMailingForEntityMap.putIfAbsent(entityId,new ConcurrentHashMap<>());
             personalizedMailingForEntityMap.get(entityId).put(mailing.getStringId(),mailing);
@@ -137,7 +144,7 @@ public class MailingServiceBean implements MailingService {
         }
     }
 
-    private void init(){
+    private synchronized void init(){
         if(personalizedMailingForEntityMap !=null) return;
 
         Collection<Mailing> allMailings=(Collection)daoService.getAllEntities("mailing$Mailing");

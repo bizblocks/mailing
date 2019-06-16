@@ -305,7 +305,7 @@ public class NotificationServiceBean implements NotificationService {
             Map<String, Object> binding = new HashMap<>();
             binding.put("object", object);
 
-            Object result=scripting.evaluateGroovy(mailing.getObjectFilterScript().getScript(), binding);
+            Object result=scripting.evaluateGroovy(mailing.getAdapterForMailingTargetScreen().getScript(), binding);
             return  result;
         } catch (Exception e) {
             return object;

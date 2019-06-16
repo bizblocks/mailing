@@ -66,6 +66,7 @@ create table MAILING_NOTIFICATION (
     STAGE integer,
     MAILING_ID uuid,
     TARGET_ENTITY_TYPE varchar(255),
+    TARGET_ENTITY_NAME varchar(255),
     --
     primary key (ID)
 )^

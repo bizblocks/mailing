@@ -17,4 +17,6 @@ public interface MailingService {
     void updateMailing(Mailing mailing);
 
     void onRemoveMailing(Mailing mailing);
+
+    void updateAllMailings();
 }

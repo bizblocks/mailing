@@ -56,12 +56,6 @@ where e.entityIdForPersonalSettings = :custom$idForPersonalSettings]]>
                         <button id="deactivate"
                                 caption="msg://deactivate"
                                 invoke="onDeactivateClick"/>
-                        <button id="sendAgain"
-                                caption="msg://send_again"
-                                invoke="onSendAgainClick"/>
-                        <button id="updateMailings"
-                                caption="msg://update_mailings"
-                                invoke="onUpdateMailingsClick"/>
                     </buttonsPanel>
                     <split id="split"
                            orientation="horizontal"
@@ -76,17 +70,34 @@ where e.entityIdForPersonalSettings = :custom$idForPersonalSettings]]>
                             </columns>
                             <rows datasource="mailingsDs"/>
                         </table>
-                        <groupTable id="notificationsTable"
-                                    height="100%"
-                                    width="100%">
-                            <columns>
-                                <group>
-                                    <column id="stage"/>
-                                </group>
-                                <column id="sendDate"/>
-                            </columns>
-                            <rows datasource="notificationsDs"/>
-                        </groupTable>
+                        <vbox expand="notificationsTable"
+                              height="100%"
+                              spacing="true">
+                            <buttonsPanel>
+                                <button id="sendAgain"
+                                        caption="msg://send_again"
+                                        invoke="onSendAgainClick"/>
+                                <button id="removeNotification"
+                                        caption="msg://remove_notification"
+                                        invoke="onRemoveNotificationClick"/>
+                                <button id="refresh"
+                                        caption="msg://refresh"
+                                        invoke="onRefreshClick"/>
+                            </buttonsPanel>
+                            <groupTable id="notificationsTable"
+                                        width="100%">
+                                <columns>
+                                    <group>
+                                        <column id="stage"/>
+                                    </group>
+                                    <column id="targetEntityName"/>
+                                    <column id="targetEntityType"/>
+                                    <column id="notificationChannels"/>
+                                    <column id="sendDate"/>
+                                </columns>
+                                <rows datasource="notificationsDs"/>
+                            </groupTable>
+                        </vbox>
                     </split>
                 </vbox>
             </tab>

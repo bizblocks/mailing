@@ -16,6 +16,7 @@ import com.lokoproject.mailing.dto.ChanelInfo;
 import com.lokoproject.mailing.entity.JustTransient;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.entity.Notification;
+import com.lokoproject.mailing.entity.NotificationStage;
 import com.lokoproject.mailing.service.ChannelStateService;
 import com.lokoproject.mailing.service.DaoService;
 import com.lokoproject.mailing.service.MailingService;
@@ -43,9 +44,6 @@ public class Mailingmanager extends AbstractWindow {
 
     @Inject
     private CollectionDatasource<Mailing,UUID> mailingsDs;
-
-    @Inject
-    private CollectionDatasource<Notification,UUID> notificationsDs;
 
     @Inject
     private Button activate;
@@ -92,11 +90,14 @@ public class Mailingmanager extends AbstractWindow {
     @Inject
     private MailingService mailingService;
 
+    @Inject
+    private CollectionDatasource<Notification,UUID> notificationsDs;
+
 
     @Override
     public void init(Map<String,Object> params){
         initNotificationBrowseTab();
-        initPersonalSettingsDs();
+
         initMailingUserSettingsTab();
     }
 
@@ -200,6 +201,8 @@ public class Mailingmanager extends AbstractWindow {
     }
 
     private void initMailingUserSettingsTab(){
+        initPersonalSettingsDs();
+
         entitiesWithCustomSettingsDs.addItemChangeListener(event->{
             updateMailingFrame(event.getItem());
         });
@@ -260,6 +263,7 @@ public class Mailingmanager extends AbstractWindow {
         notifications.forEach(notification -> {
             notificationService.sendNotificationAgain(notification, consolidate);
         });
+        onRefreshClick();
     }
 
     public void onAddPersonalizationBtnClick() {
@@ -316,5 +320,14 @@ public class Mailingmanager extends AbstractWindow {
 
         entitiesWithCustomSettingsDs.addItem(newItem);
         updateMailingFrame(entitiesWithCustomSettingsDs.getItem());
+    }
+
+    public void onRefreshClick() {
+        notificationsDs.refresh();
+    }
+
+    public void onRemoveNotificationClick() {
+        notificationService.updateNotificationStage(notificationsDs.getItem(), NotificationStage.REMOVED);
+        notificationsDs.refresh();
     }
 }

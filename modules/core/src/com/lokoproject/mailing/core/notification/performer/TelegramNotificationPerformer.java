@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -86,7 +87,10 @@ public class TelegramNotificationPerformer implements ApplicationListener<Telegr
     private void processTable(Table table, List<SendItem> result){
         ImageSendItem sendItem=new ImageSendItem();
         sendItem.caption="table";
-        sendItem.setContent(HtmlTemplateHelper.createImageByHtml(HtmlTemplateHelper.buildTable(null,table).toString(),1024,768));
+        sendItem.setContent(HtmlTemplateHelper.createImageByHtml(
+                HtmlTemplateHelper.wrapInTag(
+                        HtmlTemplateHelper.buildTable(null,table).toString(),"html")
+                ,1024,768));
         result.add(sendItem);
     }
     private void processList(com.lokoproject.mailing.notification.template.element.List list, List<SendItem> result){
@@ -167,7 +171,7 @@ public class TelegramNotificationPerformer implements ApplicationListener<Telegr
 
         @Override
         void setContent(Object content) {
-            this.content= (byte[]) content;
+            this.content= ((ByteArrayOutputStream) content).toByteArray();
         }
     }
 }

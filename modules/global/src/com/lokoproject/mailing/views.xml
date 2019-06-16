@@ -53,6 +53,7 @@
         <property name="mailing"
                   view="_minimal">
             <property name="mailingPerformers"/>
+            <property name="stringId"/>
         </property>
         <property name="targetEntityUuid"/>
         <property name="notificationChannels"/>
@@ -60,6 +61,7 @@
         <property name="sendDate"/>
         <property name="stage"/>
         <property name="targetEntityType"/>
+        <property name="targetEntityName"/>
     </view>
     <view class="com.lokoproject.mailing.entity.WayToGetMailingIdentifier"
           extends="_local"
