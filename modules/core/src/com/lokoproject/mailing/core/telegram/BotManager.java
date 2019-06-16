@@ -10,6 +10,7 @@ import com.lokoproject.mailing.core.telegram.bot.BotBehavior;
 import com.lokoproject.mailing.core.telegram.bot.CheckInBot;
 import com.lokoproject.mailing.core.telegram.bot.NotificationBot;
 import com.lokoproject.mailing.notification.event.TelegramNotificationEvent;
+import com.lokoproject.mailing.service.BotService;
 import com.lokoproject.mailing.service.IdentifierService;
 
 import org.springframework.stereotype.Component;
@@ -36,6 +37,9 @@ public class BotManager {
 
     @Inject
     private TelegramConfig telegramConfig;
+
+    @Inject
+    private BotService botService;
 
     private MainBot mainBot;
 
@@ -71,6 +75,7 @@ public class BotManager {
     }
 
     public void sendMessage(StandardEntity entity, String message){
+        botService.startBot();
         BotBehavior botBehavior=getBotBehavior(entity);
         if(botBehavior==null) return;
         mainBot.sendMessageToChat(botBehavior.getChatId(),message);
@@ -107,6 +112,7 @@ public class BotManager {
     }
 
     public void sendImage(StandardEntity entity, byte[] image, String caption) {
+        botService.startBot();
         BotBehavior botBehavior=getBotBehavior(entity);
         if(botBehavior==null) return;
         FileOutputStream fos=null ;

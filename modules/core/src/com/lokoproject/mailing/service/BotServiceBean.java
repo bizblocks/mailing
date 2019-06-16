@@ -29,7 +29,7 @@ public class BotServiceBean implements BotService {
     MainBot bot;
 
     @Override
-    public void startBot(){
+    public synchronized void startBot(){
        if(bot!=null) return;
         try {
             ApiContextInitializer.init();
