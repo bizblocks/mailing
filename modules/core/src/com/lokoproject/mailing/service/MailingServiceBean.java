@@ -32,6 +32,10 @@ public class MailingServiceBean implements MailingService {
 
     @Override
     public Mailing getPersonalizedMailing(Mailing mailing, UUID targetEntityUuid, String targetEntityType) {
+
+        if(mailingMap.values().contains(mailing)){
+            mailing=mailingMap.get(mailing.getStringId());
+        }
         init();
         Mailing personalizedMailing=getPersonalizedMailingFromMap(mailing,targetEntityUuid,targetEntityType);
 
@@ -130,6 +134,12 @@ public class MailingServiceBean implements MailingService {
     public void updateAllMailings(){
         personalizedMailingForEntityMap=null;
         init();
+    }
+
+    @Override
+    public Collection<Mailing> getAllMailings() {
+        init();
+        return mailingMap.values();
     }
 
     private void putPersonalisedMailingToMap(UUID entityId, String entityType, Mailing mailing){

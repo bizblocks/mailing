@@ -8,7 +8,6 @@ import javax.persistence.Lob;
 import com.haulmont.chile.core.annotations.NamePattern;
 import com.haulmont.cuba.core.entity.annotation.Listeners;
 
-@Listeners("mailing_GroovyScriptEntityListener")
 @NamePattern("%s|name")
 @Table(name = "MAILING_GROOVY_SCRIPT")
 @Entity(name = "mailing$GroovyScript")

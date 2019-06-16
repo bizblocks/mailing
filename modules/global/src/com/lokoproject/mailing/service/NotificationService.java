@@ -7,6 +7,7 @@ import com.lokoproject.mailing.dto.ResultOfAddingNotification;
 import com.lokoproject.mailing.entity.Mailing;
 import com.lokoproject.mailing.entity.Notification;
 import com.lokoproject.mailing.entity.NotificationStage;
+import com.lokoproject.mailing.notification.template.TemplateWrapper;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +29,7 @@ public interface NotificationService {
 
     void processMailings();
 
-    Collection<Mailing> loadAllMailings();
+    TemplateWrapper buildNotificationTemplate(Notification notification);
     
     Notification updateNotificationStage(Notification notification, NotificationStage stage);
 

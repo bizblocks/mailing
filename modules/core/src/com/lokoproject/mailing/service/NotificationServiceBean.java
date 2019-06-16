@@ -54,7 +54,7 @@ public class NotificationServiceBean implements NotificationService {
     private Map<Mailing,Map<UUID,Notification>> mailingMap=new ConcurrentHashMap<>();
     private Map<Mailing,Map<UUID,Date>> lastSendDateMap=new ConcurrentHashMap<>();
     private Map<String,Notification> actualNotificationMap=new ConcurrentHashMap<>();
-    private Collection<Mailing> allMailings;
+
 
     @Override
     public void updateMailing(Mailing mailing){
@@ -68,8 +68,6 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public void onRemoveMailing(Mailing mailing){
         if(getAllMailings()==null) return;
-
-        if(mailing.getEntityTypeForPersonalSettings()==null)getAllMailings().remove(mailing);
         mailingService.onRemoveMailing(mailing);
     }
 
@@ -181,13 +179,8 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
-    public Collection<Mailing> loadAllMailings() {
-        LoadContext<Mailing> loadContext = LoadContext.create(Mailing.class)
-                .setQuery(LoadContext.createQuery("select m from mailing$Mailing m where m.entityTypeForPersonalSettings is null") )
-                .setView("mailing-full");
-
-        allMailings= dataManager.loadList(loadContext);
-        return new CopyOnWriteArrayList<>(allMailings);
+    public TemplateWrapper buildNotificationTemplate(Notification notification){
+        return buildNotificationTemplate(getMailingOfNotification(notification),notification.getObjects());
     }
 
     @Override
@@ -275,7 +268,7 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     public Collection<Mailing> getAllMailings() {
-        return allMailings==null?loadAllMailings():allMailings;
+        return mailingService.getAllMailings();
     }
 
 
@@ -403,7 +396,7 @@ public class NotificationServiceBean implements NotificationService {
                 return mailingService.getPersonalizedMailing(mailing,notification.getTargetEntityUuid(),notification.getTargetEntityType());
             }
         }
-        return notification.getMailing();
+        return mailingService.getMailingById(notification.getMailing().getStringId());
     }
 
 

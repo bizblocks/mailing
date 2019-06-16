@@ -3,6 +3,7 @@ package com.lokoproject.mailing.service;
 
 import com.lokoproject.mailing.entity.Mailing;
 
+import java.util.Collection;
 import java.util.UUID;
 
 public interface MailingService {
@@ -19,4 +20,7 @@ public interface MailingService {
     void onRemoveMailing(Mailing mailing);
 
     void updateAllMailings();
+
+    Collection<Mailing> getAllMailings();
+
 }

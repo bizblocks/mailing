@@ -12,11 +12,13 @@ import com.haulmont.cuba.gui.data.DsBuilder;
 import com.haulmont.cuba.gui.xml.layout.ComponentsFactory;
 import com.haulmont.cuba.security.entity.User;
 import com.lokoproject.mailing.entity.JustTransient;
+import com.lokoproject.mailing.entity.Notification;
 import com.lokoproject.mailing.notification.template.TemplateWrapper;
 import com.lokoproject.mailing.notification.template.element.*;
 import com.lokoproject.mailing.notification.template.element.Link;
 import com.lokoproject.mailing.notification.template.element.Table;
 import com.lokoproject.mailing.service.DaoService;
+import com.lokoproject.mailing.service.NotificationService;
 import com.lokoproject.mailing.utils.HtmlTemplateHelper;
 
 import javax.inject.Inject;
@@ -27,6 +29,13 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class Notificationtemplateprocessor extends AbstractWindow {
 
+
+    @Inject
+    private Label consolidationLabel;
+
+    @Inject
+    private VBoxLayout mainVbox;
+
     @Inject
     private ComponentsFactory componentsFactory;
 
@@ -36,6 +45,9 @@ public class Notificationtemplateprocessor extends AbstractWindow {
     @Inject
     private DaoService daoService;
 
+    @Inject
+    private NotificationService notificationService;
+
     private TemplateWrapper notificationTemplate;
 
     @Override
@@ -43,18 +55,26 @@ public class Notificationtemplateprocessor extends AbstractWindow {
         notificationTemplate= (TemplateWrapper) params.get("notificationTemplate");
 
         if(notificationTemplate!=null){
-            createComponentsByTemplate();
-            setCaption(notificationTemplate.getTheme());
+            consolidationLabel.setVisible(false);
         }
+        else{
+            Notification notification=(Notification) params.get("notification");
+            if(notification==null) {
+                consolidationLabel.setVisible(false);
+                return;
+            }
+            notificationTemplate=notificationService.buildNotificationTemplate(notification);
+        }
+
+        createComponentsByTemplate();
+        setCaption(notificationTemplate.getTheme());
 
     }
 
     private void createComponentsByTemplate() {
-        VBoxLayout vBoxLayout=componentsFactory.createComponent(VBoxLayout.class);
-        vBoxLayout.setWidth("100%");
-        vBoxLayout.setSpacing(true);
-        add(vBoxLayout);
-        createComponentsByTemplateRecur(vBoxLayout,notificationTemplate);
+        mainVbox.setWidth("100%");
+        mainVbox.setSpacing(true);
+        createComponentsByTemplateRecur(mainVbox,notificationTemplate);
     }
 
     private void createComponentsByTemplateRecur(Container layout,TemplateElement templateElement) {

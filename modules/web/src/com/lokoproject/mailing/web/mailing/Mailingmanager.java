@@ -182,7 +182,7 @@ public class Mailingmanager extends AbstractWindow {
                 if(notification==null) return;
                 openWindow("notificationTemplateProcessor"
                         , WindowManager.OpenType.DIALOG
-                        , ParamsMap.of("notificationTemplate",notification.getTemplate() ));
+                        , ParamsMap.of("notificationTemplate",notification.getTemplate(),"notification",notification ));
             }
         };
 

@@ -5,5 +5,12 @@
         messagesPack="com.lokoproject.mailing.web.screens">
     <dialogMode height="600"
                 width="800"/>
-    <layout/>
+    <layout expand="mainVbox">
+        <label id="consolidationLabel"
+               stylename="h3 colored"
+               value="msg://notification_under_consolidatation"/>
+        <vbox id="mainVbox"
+              margin="true,false,false,false"
+              spacing="true"/>
+    </layout>
 </window>
