@@ -1,6 +1,7 @@
 package com.lokoproject.mailing.web.beens.notification;
 
 import com.haulmont.bali.util.ParamsMap;
+import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.global.AppBeans;
 import com.haulmont.cuba.core.global.GlobalConfig;
 import com.haulmont.cuba.core.sys.AppContext;
@@ -16,6 +17,7 @@ import com.haulmont.restapi.auth.CubaAnonymousAuthenticationToken;
 import com.lokoproject.mailing.entity.Notification;
 import com.lokoproject.mailing.entity.NotificationStage;
 import com.lokoproject.mailing.notification.event.CubaWebClientNotificationEvent;
+import com.lokoproject.mailing.service.DaoService;
 import com.lokoproject.mailing.service.EventTransmitterService;
 import com.lokoproject.mailing.service.IdentifierService;
 import com.lokoproject.mailing.service.NotificationService;
@@ -57,6 +59,9 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
     @Inject
     protected GlobalConfig globalConfig;
 
+    @Inject
+    private DaoService daoService;
+
 
     private UserSession userSession;
     private ComponentsFactory componentsFactory;
@@ -68,41 +73,50 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
 
         initSecurityContext();
 
-        String userIdentifier=identifierService.getIdentifier(event.getNotification().getTargetEntityType()
-                ,event.getNotification().getTargetEntityUuid().toString()
-                ,"CubaWebClient");
-
-        showDesktopNotificationToUser(userIdentifier
-                ,event.getNotification().getTemplate().getDescription()
-                ,event.getNotification().getTemplate().getTheme()
-                ,event.getNotification().getTemplate().getIconName()
-                ,event.getNotification().getId().toString()
-                ,(window,arguments) -> {
-                    Notification notification=notificationService.getNotificationById(arguments.getString(0));
-                    String windowHash=arguments.getString(1);
-                    onNotificationClick(notification,windowHash);
-                }
-        );
-
-        uiAccessorCollector.executeFor(userIdentifier,"notification",(window -> {
-            if(window instanceof Notificationbell){
-                Notificationbell notification= (Notificationbell) window;
-                notification.addNotification(event.getNotification());
+        if(event.getDeleteEvent()) {
+            Entity entity=daoService.getEntity(event.getNotification().getTargetEntityType(),event.getNotification().getTargetEntityUuid().toString());
+            if(entity==null) return;
+            if(entity instanceof User){
+                processNotificationStageChange(event.getNotification(), (User) entity,NotificationStage.REMOVED);
             }
-        }));
+        }
 
+        else{
+            String userIdentifier=identifierService.getIdentifier(event.getNotification().getTargetEntityType()
+                    ,event.getNotification().getTargetEntityUuid().toString()
+                    ,"CubaWebClient");
 
+            showDesktopNotificationToUser(userIdentifier
+                    ,event.getNotification().getTemplate().getDescription()
+                    ,event.getNotification().getTemplate().getTheme()
+                    ,event.getNotification().getTemplate().getIconName()
+                    ,event.getNotification().getId().toString()
+                    ,(window,arguments) -> {
+                        Notification notification=notificationService.getNotificationById(arguments.getString(0));
+                        String windowHash=arguments.getString(1);
+                        onNotificationClick(notification,windowHash);
+                    }
+            );
 
-        uiAccessorCollector.executeFor(userIdentifier,"main",(window)->{
-            notificationService.updateNotificationStage(event.getNotification(), NotificationStage.PROCESSED);
-            uiAccessorCollector.executeFor(userIdentifier,"userNotification",(window1 -> {
-                if(window1 instanceof UserNotification){
-                    UserNotification userNotification= (UserNotification) window1;
-                    userNotification.updateNotificationStageInTable(event.getNotification());
+            uiAccessorCollector.executeFor(userIdentifier,"notification",(window -> {
+                if(window instanceof Notificationbell){
+                    Notificationbell notification= (Notificationbell) window;
+                    notification.addNotification(event.getNotification());
                 }
             }));
-            // TODO: 08.02.2019 перенести в отдельный метод и выполнять асинхронно
-        });
+
+            uiAccessorCollector.executeFor(userIdentifier,"main",(window)->{
+                notificationService.updateNotificationStage(event.getNotification(), NotificationStage.PROCESSED);
+                uiAccessorCollector.executeFor(userIdentifier,"userNotification",(window1 -> {
+                    if(window1 instanceof UserNotification){
+                        UserNotification userNotification= (UserNotification) window1;
+                        userNotification.updateNotificationStageInTable(event.getNotification());
+                    }
+                }));
+                // TODO: 08.02.2019 перенести в отдельный метод и выполнять асинхронно
+            });
+        }
+
     }
 
     private void initSecurityContext(){
@@ -130,10 +144,13 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
     }
 
     public void markNotificationAsRead(Notification notification){
+        processNotificationStageChange(notification,getUserSession().getUser(),NotificationStage.READ);
+    }
 
-        uiAccessorCollector.executeOnceFor(getUserSession().getUser(),"main",(window)->{
-            Notification modifiedNotification= notificationService.updateNotificationStage(notification,NotificationStage.READ);
-            notification.setStage(NotificationStage.READ);
+    private void processNotificationStageChange(Notification notification,User user,NotificationStage stage){
+        uiAccessorCollector.executeOnceFor(user,"main",(window)->{
+            Notification modifiedNotification= notificationService.updateNotificationStage(notification,stage);
+            notification.setStage(stage);
 
             uiAccessorCollector.executeFor(getUserSession().getUser(),"notification",(bellWindow)->{
                 if(bellWindow instanceof Notificationbell){
@@ -149,7 +166,6 @@ public class CubaWebClientNotificationPerformer implements ApplicationListener<C
                 }
             });
         });
-
     }
 
     public UserSession getUserSession() {

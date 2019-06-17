@@ -54,6 +54,7 @@ public class CubaEmailNotificationPerformer implements ApplicationListener<CubaE
     }
     @Override
     public void onApplicationEvent(CubaEmailNotificationEvent event) {
+        if(event.getDeleteEvent()) return;
         try {
             String email=identifierService.getIdentifier(event.getNotification().getTargetEntityType(),
                     event.getNotification().getTargetEntityUuid().toString(),

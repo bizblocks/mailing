@@ -207,6 +207,15 @@ public class NotificationServiceBean implements NotificationService {
             actualNotificationMap.remove(notification.getId().toString());
         }
 
+        if(NotificationStage.REMOVED.equals(stage)){
+            final Notification finalNotification = notification;
+            getNotificationEvents(notification).forEach(event->{
+                event.setNotification(finalNotification);
+                event.setDeleteEvent(true);
+                events.publish(event);
+            });
+        }
+
         return notification;
     }
 
@@ -344,6 +353,10 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     private void dispatchNotification(Notification notification){
+        dispatchNotification(notification,getNotificationEvents(notification));
+    }
+
+    private List<AbstractNotificationEvent> getNotificationEvents(Notification notification){
         List<AbstractNotificationEvent> notificationEvents=new ArrayList<>();
         Mailing mailing=getMailingOfNotification(notification);
         assert mailing != null;
@@ -355,7 +368,7 @@ public class NotificationServiceBean implements NotificationService {
                 mailingTypeBlackList.add(performer);
             }
         }
-        dispatchNotification(notification,notificationEvents);
+        return notificationEvents;
     }
 
     private void dispatchNotification(Notification notification,List<AbstractNotificationEvent> notificationEvents){

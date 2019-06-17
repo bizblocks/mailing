@@ -125,14 +125,20 @@ public class UserNotification extends AbstractWindow {
     }
 
     public void updateNotificationStageInTable(Notification notification){
-        if(notification==null) return;;
+        if(notification==null) return;
         if(!tableNotificationsDs.containsItem(notification.getId())){
+            if(NotificationStage.REMOVED.equals(notification.getStage())) return;
             tableNotificationsDs.addItem(notification);
 
         }
         Notification notificationToUpdate= tableNotificationsDs.getItem(notification.getId());
         if(notificationToUpdate!=null){
-            notificationToUpdate.setStage(notification.getStage());
+            if(NotificationStage.REMOVED.equals(notification.getStage())) {
+                tableNotificationsDs.removeItem(notificationToUpdate);
+            }
+            else {
+                notificationToUpdate.setStage(notification.getStage());
+            }
         }
         notificationTable.repaint();
         

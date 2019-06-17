@@ -38,6 +38,8 @@ public class TelegramNotificationPerformer implements ApplicationListener<Telegr
 
     @Override
     public void onApplicationEvent(TelegramNotificationEvent event) {
+        if(event.getDeleteEvent()) return;
+
         String telegramId=identifierService.getIdentifier(event.getNotification().getTargetEntityType(),
                 event.getNotification().getTargetEntityUuid().toString(),
                 "Telegram");

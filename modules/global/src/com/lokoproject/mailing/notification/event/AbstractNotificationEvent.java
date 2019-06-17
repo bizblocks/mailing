@@ -12,6 +12,8 @@ public abstract class AbstractNotificationEvent extends ApplicationEvent {
 
     private Notification notification;
 
+    private Boolean isDeleteEvent=false;
+
     public AbstractNotificationEvent(Object source) {
         super(source);
     }
@@ -25,4 +27,11 @@ public abstract class AbstractNotificationEvent extends ApplicationEvent {
         this.notification = notification;
     }
 
+    public Boolean getDeleteEvent() {
+        return isDeleteEvent;
+    }
+
+    public void setDeleteEvent(Boolean deleteEvent) {
+        isDeleteEvent = deleteEvent;
+    }
 }
