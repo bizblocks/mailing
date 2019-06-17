@@ -42,4 +42,6 @@ public interface NotificationService {
     void sendNotificationAgain(Notification notification,boolean consolidate);
 
     void onRemoveMailing(Mailing item);
+
+    void sendNotificationImmediately(Notification notification);
 }

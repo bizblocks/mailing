@@ -91,6 +91,9 @@ public class Mailingmanager extends AbstractWindow {
     private MailingService mailingService;
 
     @Inject
+    private Button sendAgainBtn;
+
+    @Inject
     private CollectionDatasource<Notification,UUID> notificationsDs;
 
 
@@ -99,6 +102,18 @@ public class Mailingmanager extends AbstractWindow {
         initNotificationBrowseTab();
 
         initMailingUserSettingsTab();
+
+        notificationsDs.addItemChangeListener(event->{
+            if(event.getItem()!=null){
+                if(NotificationStage.CONSOLIDATION.equals(event.getItem().getStage())){
+                    sendAgainBtn.setCaption(getMessage("send_now"));
+                }
+                else{
+                    sendAgainBtn.setCaption(getMessage("send_again"));
+                }
+
+            }
+        });
     }
 
     public void onActivateClick() {
@@ -110,7 +125,22 @@ public class Mailingmanager extends AbstractWindow {
     }
 
     public void onSendAgainClick() {
-        sendNotificationAgain(false);
+        if(notificationsDs.getItem()==null){
+            showNotification(getMessage("select_notification"));
+            return;
+        }
+        if(NotificationStage.CONSOLIDATION.equals(notificationsDs.getItem().getStage())){
+            notificationService.sendNotificationImmediately(notificationsDs.getItem());
+            onRefreshClick();
+        }
+        else{
+            Collection<Notification> notifications=notificationsTable.getSelected();
+            notifications.forEach(notification -> {
+                notificationService.sendNotificationAgain(notification, false);
+            });
+            onRefreshClick();
+        }
+
     }
 
     public void onUpdateMailingsClick() {
@@ -256,14 +286,6 @@ public class Mailingmanager extends AbstractWindow {
         mailing.setActivated(value);
         mailingsDs.commit();
         notificationService.updateMailing(mailing);
-    }
-
-    private void sendNotificationAgain(Boolean consolidate){
-        Collection<Notification> notifications=notificationsTable.getSelected();
-        notifications.forEach(notification -> {
-            notificationService.sendNotificationAgain(notification, consolidate);
-        });
-        onRefreshClick();
     }
 
     public void onAddPersonalizationBtnClick() {

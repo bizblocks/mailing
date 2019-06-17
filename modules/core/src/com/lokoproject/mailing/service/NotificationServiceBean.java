@@ -72,6 +72,12 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
+    public void sendNotificationImmediately(Notification notification) {
+        dispatchNotification(notification);
+        if(canRemoveAfterNotificationDone(notification)) removeNotification(notification);
+    }
+
+    @Override
     public void sendSimpleNotification(StandardEntity target, String content, String header, String channelName){
         Notification notification=createNotification(target,null,null);
         TemplateBuilder.MainTemplateBuilder builder=TemplateBuilder.createBuilder(header,content,"smile");
@@ -383,8 +389,7 @@ public class NotificationServiceBean implements NotificationService {
             lastSendDateMap.putIfAbsent( getMailingOfNotification(notification),new HashMap<>());
             lastSendDateMap.get( getMailingOfNotification(notification)).put(notification.getTargetEntityUuid(),notification.getSendDate());
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
 
     }

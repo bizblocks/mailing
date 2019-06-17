@@ -74,7 +74,7 @@ where e.entityIdForPersonalSettings = :custom$idForPersonalSettings]]>
                               height="100%"
                               spacing="true">
                             <buttonsPanel>
-                                <button id="sendAgain"
+                                <button id="sendAgainBtn"
                                         caption="msg://send_again"
                                         invoke="onSendAgainClick"/>
                                 <button id="removeNotification"
