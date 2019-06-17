@@ -17,6 +17,7 @@ import com.lokoproject.mailing.notification.template.TemplateBuilder;
 import com.lokoproject.mailing.notification.template.TemplateWrapper;
 import com.lokoproject.mailing.utils.EntityUtil;
 import com.lokoproject.mailing.utils.ReflectionHelper;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -61,8 +62,7 @@ public class NotificationServiceBean implements NotificationService {
         if(getAllMailings()==null) return;
         if(mailing.getEntityTypeForPersonalSettings()!=null) return;
 
-        getAllMailings().remove(mailing);
-        getAllMailings().add(mailing);
+        mailingService.updateMailing(mailing);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public ResultOfAddingNotification addNotification(Mailing mailing, Object object, Boolean onlyCheck){
         ResultOfAddingNotification result=new ResultOfAddingNotification();
-        if(mailing.getActivated()){
+        if(BooleanUtils.isNotFalse(mailing.getActivated())){
             if(isAcceptableForObject(mailing,object)){
                 getUsersToNotify(mailing,object).forEach(entity->{
                     if(!onlyCheck)addObjectToNotification(entity,mailing,object);
@@ -123,6 +123,7 @@ public class NotificationServiceBean implements NotificationService {
     public void processMailings(){
         List<Notification> noticeToRemove=new ArrayList<>();
         mailingMap.forEach((mailing,userNoticeMap)->{
+            if(BooleanUtils.isNotTrue(mailing.getActivated())) return;
             userNoticeMap.forEach((user,notification)->{
                 if(canSendNow(notification,timeSource.currentTimestamp())){
                     dispatchNotification(notification);

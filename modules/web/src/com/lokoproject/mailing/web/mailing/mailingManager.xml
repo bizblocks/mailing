@@ -5,7 +5,6 @@
         messagesPack="com.lokoproject.mailing.web.mailing">
     <dsContext>
         <collectionDatasource id="mailingsDs"
-                              allowCommit="false"
                               class="com.lokoproject.mailing.entity.Mailing"
                               view="mailing-full">
             <query>
