@@ -59,7 +59,7 @@ public class ReflectionHelper {
     public static List getClassesNamesFromJar(String jarName,String packageName) {
         ArrayList classes = new ArrayList();
 
-
+        jarName=jarName.replaceAll("%20"," ");
         try {
             JarInputStream jarFile = new JarInputStream(new FileInputStream(
                     jarName));

@@ -47,6 +47,10 @@ public class Notificationbell extends AbstractWindow {
 
         hBoxLayout.add(label);
 
+        initJS();
+    }
+
+    private void initJS(){
         JavaScript.getCurrent().addFunction("onBellClick", (JavaScriptFunction) arguments -> openWindow("userNotification", WindowManager.OpenType.NEW_TAB));
         JavaScript.getCurrent().execute("var el = document.querySelector('.bell_notification');\n" +
                 "    el.onclick=function(){onBellClick();}");
@@ -70,15 +74,18 @@ public class Notificationbell extends AbstractWindow {
     }
 
     public void showPopupWithUnreadNotifications(){
+        initJS();
         JavaScript.getCurrent().execute("var popup = document.getElementById('notification-popup'); popup.classList.add('show');");
     }
 
     public void hidePopupWithUnreadNotifications(){
+        initJS();
         JavaScript.getCurrent().execute("var popup = document.getElementById('notification-popup'); popup.classList.remove('show');");
     }
 
 
     private void updateUnreadNotificationValue() {
+        initJS();
         JavaScript.getCurrent().execute("var el = document.querySelector('.bell_notification');\n" +
                 "        var count = Number(el.getAttribute('data-count'));\n"+
                 "    el.setAttribute('data-count', "+String.valueOf(notificationMap.size())+");\n" +
@@ -122,6 +129,7 @@ public class Notificationbell extends AbstractWindow {
     }
 
     public void setUnreadNotifications(List<Notification> notifications){
+        initJS();
         notificationMap.clear();
         notifications.forEach(item->{
             notificationMap.put(item.getId().toString(),item);
@@ -133,6 +141,7 @@ public class Notificationbell extends AbstractWindow {
 
 
     public void addNotification(Notification notification) {
+        initJS();
         notificationMap.put(notification.getId().toString(),notification);
         shakeBell();
         updateUnreadNotificationValue();
@@ -140,6 +149,7 @@ public class Notificationbell extends AbstractWindow {
     }
 
     public void removeNotification(Notification notification){
+        initJS();
         notificationMap.remove(notification.getId().toString());
         if(notificationMap.size()==0) hidePopupWithUnreadNotifications();
         updateUnreadNotificationValue();
@@ -147,6 +157,8 @@ public class Notificationbell extends AbstractWindow {
     }
 
     private void updatePopupWithUnreadNotifications() {
+
+        initJS();
 
         StringBuilder popupContentBuilder=new StringBuilder();
 
