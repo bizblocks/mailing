@@ -16,6 +16,9 @@ public class EventTransmitterServiceBean implements EventTransmitterService {
         if(!url.contains("localhost")){
             eventTransmitter.setUrl(url);
         }
+        else {
+            eventTransmitter.setUrl(url.replace("localhost","127.0.0.1"));
+        }
     }
 
 }
