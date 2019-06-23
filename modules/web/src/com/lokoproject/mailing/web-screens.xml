@@ -6,8 +6,6 @@
             template="com/lokoproject/mailing/web/mailing/mailing-browse.xml"/>
     <screen id="screen"
             template="com/lokoproject/mailing/web/screens/screen.xml"/>
-    <screen id="mainWindow"
-            template="com/lokoproject/mailing/web/screens/ext-mainwindow.xml"/>
     <screen id="notificationBell"
             template="com/lokoproject/mailing/web/screens/notificationBell.xml"/>
     <screen id="notificationTemplateProcessor"

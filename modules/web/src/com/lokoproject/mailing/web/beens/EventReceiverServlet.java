@@ -5,18 +5,21 @@ import com.haulmont.cuba.core.global.Events;
 import com.lokoproject.mailing.notification.event.WebEvent;
 import com.lokoproject.mailing.utils.Serializer;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@RestController
-@RequestMapping("/receiver")
-public class EventReceiver {
+/**
+ * Created by Anton on 23.06.2019.
+ */
+public class EventReceiverServlet extends HttpServlet {
 
     private Events events;
 
-    @PostMapping("/event")
-    public void greeting(@RequestParam(value="data", defaultValue="null") String data) {
-
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response){
+        String data=request.getParameter("data");
         if(!("null".equals(data))) {
             try {
                 WebEvent event= (WebEvent) Serializer.fromString(data);
@@ -29,7 +32,7 @@ public class EventReceiver {
     }
 
     private void publishEvent(ApplicationEvent event){
-        if(events==null) events=AppBeans.get(Events.class);
+        if(events==null) events= AppBeans.get(Events.class);
         events.publish( event);
     }
 }

@@ -27,4 +27,8 @@
             </map>
         </property>
     </bean>
+
+    <bean id="cuba_WebWindowManager" class="com.lokoproject.mailing.web.beens.WindowManagerExt" scope="prototype">
+
+    </bean>
 </beans>
