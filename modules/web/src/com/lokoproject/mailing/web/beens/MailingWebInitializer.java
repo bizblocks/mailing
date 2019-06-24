@@ -12,7 +12,7 @@ import javax.servlet.Servlet;
  * Created by Anton on 23.06.2019.
  */
 @Component
-public class WebInitializer {
+public class MailingWebInitializer {
 
     @Inject
     private ServletRegistrationManager servletRegistrationManager;
